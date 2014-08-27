@@ -1,0 +1,26 @@
+<polymer-element name="ui-table">
+<template>
+  <link rel="stylesheet" type="text/css" href="./ui-table.less">
+  <link rel="stylesheet" href="../node_modules/ui-fonts/node_modules/ui-font-awesome/icons.less">
+  <link rel="stylesheet" href="../node_modules/ui-fonts/node_modules/ui-font-awesome/font-awesome.less">
+  <table border="1" style="width:100%" id='sayeef'>
+    <tr>
+      <template repeat="{{column, i in data.columns}}">
+        <td id="column_{{i}}" on-click="{{sort}}">{{column}}
+          <icon hidden?="{{i == sort_column}}" sort style="float:right;"></icon>
+          <icon hidden?="{{i != sort_column || 0 == sort_order}}" sort-asc style="float:right;"></icon>
+          <icon hidden?="{{i != sort_column || 1 == sort_order}}" sort-desc style="float:right;"></icon>
+        </td>
+      </template>
+    </tr>
+    <template repeat="{{d in data.data}}">
+      <tr>
+        <template repeat="{{item in d}}">
+          <td>{{item}}</td>
+        </template>
+      </tr>
+    </template>
+  </table>
+</template>
+<script src="./ui-table.litcoffee"></script>
+</polymer-element>

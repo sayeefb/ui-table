@@ -1,0 +1,33 @@
+<!doctype html>
+
+<html>
+  <head>
+    <title>ui-table</title>
+    <script src="http://localhost:35729/livereload.js"></script>
+    <script src="node_modules/polymer/platform.js"></script>
+    <link rel="stylesheet" href="node_modules/ui-styles/ui-styles.less">
+    <link rel="import" href="node_modules/polymer/polymer.html">
+    <link rel="import" href="src/ui-table.html">
+    <link rel="import" href="node_modules/ui-styles/ui-styles.html">
+    <link rel="import" href="node_modules/ui-fonts/fonts.html">
+    <style>
+      body {
+        font-family: "Helvetica Neue", "Helvetica", Arial;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <border full>
+        <ui-table/>
+      </border>
+    </div>
+    <script>
+      document.addEventListener('polymer-ready', function() {
+        document.querySelector('ui-table').data = {columns:["First Name", "Last Name", "Age"]
+                                                    ,data:[["Alice", "Peters", "31"]
+                                                          ,["Bob", "Jones", "29"]]}
+      })
+    </script>
+  </body>
+</html>
