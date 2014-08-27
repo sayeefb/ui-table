@@ -1,9 +1,11 @@
 <polymer-element name="ui-table">
+
 <template>
   <link rel="stylesheet" type="text/css" href="./ui-table.less">
   <link rel="stylesheet" href="../node_modules/ui-fonts/node_modules/ui-font-awesome/icons.less">
   <link rel="stylesheet" href="../node_modules/ui-fonts/node_modules/ui-font-awesome/font-awesome.less">
-  <table border="1" style="width:100%" id='sayeef'>
+  <button hidden?="{{filtered == false}}" on-click="{{reset_filter}}">Reset Filter</button>
+  <table border="1" style="width:100%">
     <tr>
       <template repeat="{{column, i in data.columns}}">
         <td id="column_{{i}}" on-click="{{sort}}">{{column}}
@@ -15,8 +17,8 @@
     </tr>
     <template repeat="{{d in data.data}}">
       <tr>
-        <template repeat="{{item in d}}">
-          <td>{{item}}</td>
+        <template repeat="{{item, i in d}}">
+          <td data-column="{{i}}" on-dblclick="{{filter}}">{{item}}</td>
         </template>
       </tr>
     </template>

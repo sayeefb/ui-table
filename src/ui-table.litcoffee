@@ -67,6 +67,27 @@ event handlers, this is all declarative.
 
         @sort_data()
 
+      filter: (e) ->
+        target_column = Number e.target.getAttribute 'data-column'
+        target_value = e.target.textContent.toLowerCase()
+
+        if @filtered isnt true then @backup_data = @data.data
+        
+        if @filtered isnt true then @filtered = true
+
+        temp_data = []
+        
+        for item, i in @data.data
+          do (item, target_column, target_value) =>
+            if item[target_column].toLowerCase() is target_value
+              temp_data.push(item)
+
+        @data.data = temp_data
+
+      reset_filter: ->
+        @data.data = @backup_data
+        @filtered = false
+
 ##Polymer Lifecycle
 
       created: ->
@@ -76,5 +97,6 @@ event handlers, this is all declarative.
       attached: ->
 
       domReady: ->
+        @filtered = false
 
       detached: ->
