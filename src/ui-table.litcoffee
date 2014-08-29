@@ -1,11 +1,4 @@
 #ui-table
-IOS inspired navigation stack. This consists of a `ui-navigation` element
-wrapped around and number of `ui-view` elements.
-
-Inside each screen, you decorate elements with `push-screen="id"` attributes so
-that clicking those elements automaticaly navigates. No need to put in any
-event handlers, this is all declarative.
-
 
     Polymer 'ui-table',
 
@@ -15,31 +8,69 @@ event handlers, this is all declarative.
 
 ##Methods
 
+      test: (val)->
+        console.log "testing", val
+
+      jsonChanged: (old_val, new_val) ->
+        @data = @format_json()
+
+      dataChanged: (old_val, new_val) ->
+        console.log "!@!@!@!@1", @row_click
+        if @row_click isnt "true" and @row_click_adjusted isnt true
+          @data.columns.unshift "row_click"
+          for data in @data.data
+            data.unshift ""
+          @row_click_adjusted = true
+
       if_int_sort: (item) ->
-        if isNaN item
+        if item isnt undefined and isNaN item
           return false
         else 
           return true
 
       comparator_non_int: (a, b) ->
         if window.sort_order == 1
-          if a[window.sort_column] < b[window.sort_column] then return -1
-          if a[window.sort_column] > b[window.sort_column] then return 1
+          if a[window.sort_column] is undefined then return 1
+          else if a[window.sort_column] < b[window.sort_column] then return -1
+          else if a[window.sort_column] > b[window.sort_column] then return 1
           return 0
         else
-          if a[window.sort_column] > b[window.sort_column] then return -1
-          if a[window.sort_column] < b[window.sort_column] then return 1
+          if a[window.sort_column] is undefined then return 1
+          else if a[window.sort_column] > b[window.sort_column] then return -1
+          else if a[window.sort_column] < b[window.sort_column] then return 1
           return 0
 
       comparator_int: (a, b) ->
         if window.sort_order == 1
-          if Number a[window.sort_column] < Number b[window.sort_column] then return -1
-          if Number a[window.sort_column] > Number b[window.sort_column] then return 1
+          if a[window.sort_column] is undefined then return 1
+          else if Number a[window.sort_column] < Number b[window.sort_column] then return -1
+          else if Number a[window.sort_column] > Number b[window.sort_column] then return 1
           return 0
         else
-          if Number a[window.sort_column] > Number b[window.sort_column] then return -1
-          if Number a[window.sort_column] < Number b[window.sort_column] then return 1
+          if a[window.sort_column] is undefined then return 1
+          else if Number a[window.sort_column] > Number b[window.sort_column] then return -1
+          else if Number a[window.sort_column] < Number b[window.sort_column] then return 1
           return 0
+
+      format_json: ->
+        temp_data = {}
+        temp_data.columns = []
+        temp_data.data = []
+        temp_item = []
+
+        for item in @json
+          do (item) =>
+            for key of item
+              do (key) =>
+                if key not in temp_data.columns then temp_data.columns.push key
+        for item in @json
+          do (item) =>
+          for key in temp_data.columns
+            temp_item.push(item[key])
+          temp_data.data.push(temp_item)
+          temp_item = []
+
+        return temp_data
 
 ##Event Handlers
 
@@ -79,7 +110,12 @@ event handlers, this is all declarative.
         
         for item, i in @data.data
           do (item, target_column, target_value) =>
-            if item[target_column].toLowerCase() is target_value
+            temp_value = item[target_column].toString()
+            if not temp_value
+              temp_value = ""
+            else
+              temp_value = temp_value.toLowerCase()
+            if temp_value is target_value
               temp_data.push(item)
 
         @data.data = temp_data
@@ -87,6 +123,21 @@ event handlers, this is all declarative.
       reset_filter: ->
         @data.data = @backup_data
         @filtered = false
+
+      row_click_event: (e) ->
+        e = window.event || e
+        if @clickTimer and @clickTimer isnt null
+          console.log @clickTimer
+          clearTimeout @clickTimer
+          @clickTimer = null
+        else 
+          @clickTimer = setTimeout =>
+            @clickTimer = null
+            if @row_click is 'true'
+              target_column = Number e.target.getAttribute 'data-column'
+              row_click_value = @data.data[target_column][0]
+              @fire 'ui-table-row-click', row_click_value
+          , 500
 
 ##Polymer Lifecycle
 
