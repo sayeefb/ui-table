@@ -19,7 +19,7 @@
   <body>
     <div>
       <border full>
-        <ui-table row_click = "true"/>
+        <ui-table rowClickReturn = "true"/>
       </border>
     </div>
     <script>
@@ -30,12 +30,12 @@
         //                                                   ,["Bob", "Jones", "29", "45000"]
         //                                                   ,["Abigail", "Peters", "25", "100000"]
         //                                                   ,["Jerome", "Peters", "25", "100000"]]}
-        document.querySelector('ui-table').json = [{"row_click": "test('hello')","First Name": "Richard", "Last Name": "Mai", "Income": "30000"}
-                                                  ,{"row_click": "www.yahoo.com","First Name": "Alice", "Last Name": "Peters", "Age": "31", "Income": "30000"}
-                                                  ,{"row_click": "www.fmylife.com","First Name": "Bob", "Last Name": "Jones", "Age": "29", "Income": "45000"}
-                                                  ,{"row_click": "www.espn.com","First Name": "Abigail", "Last Name": "Peters", "Age": "25"}
-                                                  ,{"row_click": "www.nfl.com","First Name": "Jerome", "Last Name": "Peters", "Age": "25", "Income": "100000"}
-                                                  ,{"row_click": "www.hello.com","First Name": "Sayeef", "Last Name": "Bazli", "Income": "10000"}
+        document.querySelector('ui-table').json = [{"cm_id": "111111","First Name": "Richard", "Last Name": "Mai", "Income": "30000"}
+                                                  ,{"cm_id": "222222","First Name": "Alice", "Last Name": "Peters", "Age": "31", "Income": "30000"}
+                                                  ,{"cm_id": "333333","First Name": "Bob", "Last Name": "Jones", "Age": "29", "Income": "45000"}
+                                                  ,{"cm_id": "444444","First Name": "Abigail", "Last Name": "Peters", "Age": "25"}
+                                                  ,{"cm_id": "555555","First Name": "Jerome", "Last Name": "Peters", "Age": "25", "Income": "100000"}
+                                                  ,{"cm_id": "666666","First Name": "Sayeef", "Last Name": "Bazli", "Income": "10000"}
                                                   ]
         document.querySelector('ui-table').addEventListener("ui-table-row-click", function(e){
           console.log (e);

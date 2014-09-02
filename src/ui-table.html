@@ -1,4 +1,4 @@
-<polymer-element name="ui-table" attributes="row_click">
+<polymer-element name="ui-table" attributes="rowClickReturn">
 
 <template>
   <link rel="stylesheet" type="text/css" href="./ui-table.less">
@@ -15,10 +15,10 @@
         </td>
       </template>
     </tr>
-    <template repeat="{{d in data.data}}">
+    <template repeat="{{data, d in data.data}}">
       <tr>
-        <template repeat="{{item, i in d}}">
-          <td hidden?="{{i == 0}}" data-column="{{i}}" on-click="{{row_click_event}}" on-dblclick="{{filter}}">{{item}}</td>
+        <template repeat="{{item, i in data}}">
+          <td hidden?="{{i == 0}}" data-column="{{i}}" data-row="{{d}}" on-click="{{row_click_event}}" on-dblclick="{{filter}}">{{item}}</td>
         </template>
       </tr>
     </template>

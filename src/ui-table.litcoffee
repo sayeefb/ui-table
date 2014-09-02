@@ -8,19 +8,15 @@
 
 ##Methods
 
-      test: (val)->
-        console.log "testing", val
-
       jsonChanged: (old_val, new_val) ->
         @data = @format_json()
 
       dataChanged: (old_val, new_val) ->
-        console.log "!@!@!@!@1", @row_click
-        if @row_click isnt "true" and @row_click_adjusted isnt true
-          @data.columns.unshift "row_click"
+        if @rowClickReturn isnt "true" and @rowClickAdjusted isnt true
+          @data.columns.unshift ""
           for data in @data.data
             data.unshift ""
-          @row_click_adjusted = true
+          @rowClickAdjusted = true
 
       if_int_sort: (item) ->
         if item isnt undefined and isNaN item
@@ -125,18 +121,17 @@
         @filtered = false
 
       row_click_event: (e) ->
-        e = window.event || e
+        targetRow = Number e.target.getAttribute 'data-row'
+
         if @clickTimer and @clickTimer isnt null
-          console.log @clickTimer
           clearTimeout @clickTimer
           @clickTimer = null
         else 
           @clickTimer = setTimeout =>
             @clickTimer = null
-            if @row_click is 'true'
-              target_column = Number e.target.getAttribute 'data-column'
-              row_click_value = @data.data[target_column][0]
-              @fire 'ui-table-row-click', row_click_value
+            if @rowClickReturn is 'true'
+              rowClickValue = @data.data[targetRow][0]
+              @fire 'ui-table-row-click', rowClickValue
           , 500
 
 ##Polymer Lifecycle
