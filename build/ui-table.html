@@ -3194,11 +3194,11 @@ Polymer('ui-table', {
     _fn = (function(_this) {
       return function(item, target_column, target_value) {
         var temp_value;
-        temp_value = item[target_column].toString();
+        temp_value = item[target_column];
         if (!temp_value) {
           temp_value = "";
         } else {
-          temp_value = temp_value.toLowerCase();
+          temp_value = temp_value.toString().toLowerCase();
         }
         if (temp_value === target_value) {
           return temp_data.push(item);

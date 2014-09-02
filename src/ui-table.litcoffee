@@ -106,11 +106,11 @@
         
         for item, i in @data.data
           do (item, target_column, target_value) =>
-            temp_value = item[target_column].toString()
+            temp_value = item[target_column]
             if not temp_value
               temp_value = ""
             else
-              temp_value = temp_value.toLowerCase()
+              temp_value = temp_value.toString().toLowerCase()
             if temp_value is target_value
               temp_data.push(item)
 
