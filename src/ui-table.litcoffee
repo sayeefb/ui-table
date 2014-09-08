@@ -68,6 +68,34 @@
 
         return temp_data
 
+      search: (searchTerm) ->
+        temp_data = []
+        
+        for item, i in @data.data
+          do (item, searchTerm) =>
+            for column, j in @data.columns
+              temp_value = item[j]
+              if not temp_value
+                temp_value = ""
+              else
+                temp_value = temp_value.toString().toLowerCase()
+              if temp_value.indexOf(searchTerm.toString().toLowerCase()) > -1
+                itemLoc = []
+                itemLoc.push j
+                itemLoc.push i
+                temp_data.push(itemLoc)
+
+        temp_data
+
+      filter: (selectedItems, filterByRows) ->
+        temp_data = []
+        if filterByRows
+          for item, i in selectedItems
+            temp_data.push @data.data[item[1]]
+        temp_data
+          
+
+
 ##Event Handlers
 
       sort_data: () ->
@@ -94,13 +122,14 @@
 
         @sort_data()
 
-      filter: (e) ->
-        target_column = Number e.target.getAttribute 'data-column'
-        target_value = e.target.textContent.toLowerCase()
+      filter_event: (e) ->
+        targetElement = @itemSelected.pop()
+        target_column = Number targetElement.getAttribute 'data-column'
+        target_value = targetElement.textContent.toLowerCase()
 
-        if @filtered isnt true then @backup_data = @data.data
-        
-        if @filtered isnt true then @filtered = true
+        if @filtered isnt true
+          @backup_data = @data.data
+          @filtered = true
 
         temp_data = []
         
@@ -122,17 +151,35 @@
 
       row_click_event: (e) ->
         targetRow = Number e.target.getAttribute 'data-row'
+        targetColumn = Number e.target.getAttribute 'data-column'
+        targetElement = e.target
 
         if @clickTimer and @clickTimer isnt null
           clearTimeout @clickTimer
           @clickTimer = null
+          rowClickValue = @data.data[targetRow][0]
+          if @rowClickReturn is 'true'
+            @fire 'ui-table-row-click', rowClickValue
         else 
           @clickTimer = setTimeout =>
             @clickTimer = null
-            if @rowClickReturn is 'true'
-              rowClickValue = @data.data[targetRow][0]
-              @fire 'ui-table-row-click', rowClickValue
+            if @itemSelected.length > 0
+              @itemSelected[0].removeAttribute('class', 'selectedCell')
+              @itemSelected.pop()
+            @itemSelected.push targetElement
+            targetElement.setAttribute('class', 'selectedCell')
           , 500
+
+      search_filter: (e) ->
+        searchText = @$.searchText.value
+        filterLocations = []
+
+        if searchText isnt ""
+          filterLocations = @search searchText
+          if @filtered isnt true
+            @backup_data = @data.data
+            @filtered = true
+          @data.data = @filter filterLocations, true
 
 ##Polymer Lifecycle
 
@@ -144,5 +191,6 @@
 
       domReady: ->
         @filtered = false
+        @itemSelected = []
 
       detached: ->

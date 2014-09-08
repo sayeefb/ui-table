@@ -4,8 +4,10 @@
   <link rel="stylesheet" type="text/css" href="./ui-table.less">
   <link rel="stylesheet" href="../node_modules/ui-fonts/node_modules/ui-font-awesome/icons.less">
   <link rel="stylesheet" href="../node_modules/ui-fonts/node_modules/ui-font-awesome/font-awesome.less">
-  <button hidden?="{{filtered == false}}" on-click="{{reset_filter}}">Reset Filter</button>
-  <table border="1" style="width:100%">
+  <button hidden?="{{filtered == false}}" on-click="{{reset_filter}}" style="float:right;">Reset Filter</button>
+  <button hidden?="{{itemSelected == undefined}}" on-click="{{filter_event}}" style="float:right;">Filter</button>
+  <div id="search"><label>Search: </label><input id="searchText"></input><button id="searchButton" on-click="{{search_filter}}">Go</button></div>
+  <table border="1" style="width:100%;">
     <tr>
       <template repeat="{{column, i in data.columns}}">
         <td id="column_{{i}}" on-click="{{sort}}" hidden?="{{i == 0}}" style="position:relative"><span style="display: block;padding-right: 15px;position: relative;">{{column}}</span>
@@ -16,9 +18,9 @@
       </template>
     </tr>
     <template repeat="{{data, d in data.data}}">
-      <tr>
+      <tr id="row_{{d}}">
         <template repeat="{{item, i in data}}">
-          <td hidden?="{{i == 0}}" data-column="{{i}}" data-row="{{d}}" on-click="{{row_click_event}}" on-dblclick="{{filter}}">{{item}}</td>
+          <td hidden?="{{i == 0}}" data-column="{{i}}" data-row="{{d}}" on-click="{{row_click_event}}">{{item}}</td>
         </template>
       </tr>
     </template>

@@ -460,6 +460,9 @@ success {
   color: #308e28;
   display: inline;
 }
+.selectedCell {
+  background: yellow;
+}
 </style>
   <style>icon {
   position: relative;
@@ -3018,8 +3021,10 @@ icon[youtube-square]:before,
   font-style: normal;
 }
 </style>
-  <button hidden?="{{filtered == false}}" on-click="{{reset_filter}}">Reset Filter</button>
-  <table border="1" style="width:100%">
+  <button hidden?="{{filtered == false}}" on-click="{{reset_filter}}" style="float:right;">Reset Filter</button>
+  <button hidden?="{{itemSelected == undefined}}" on-click="{{filter_event}}" style="float:right;">Filter</button>
+  <div id="search"><label>Search: </label><input id="searchText"><button id="searchButton" on-click="{{search_filter}}">Go</button></div>
+  <table border="1" style="width:100%;">
     <tr>
       <template repeat="{{column, i in data.columns}}">
         <td id="column_{{i}}" on-click="{{sort}}" hidden?="{{i == 0}}" style="position:relative"><span style="display: block;padding-right: 15px;position: relative;">{{column}}</span>
@@ -3030,9 +3035,9 @@ icon[youtube-square]:before,
       </template>
     </tr>
     <template repeat="{{data, d in data.data}}">
-      <tr>
+      <tr id="row_{{d}}">
         <template repeat="{{item, i in data}}">
-          <td hidden?="{{i == 0}}" data-column="{{i}}" data-row="{{d}}" on-click="{{row_click_event}}" on-dblclick="{{filter}}">{{item}}</td>
+          <td hidden?="{{i == 0}}" data-column="{{i}}" data-row="{{d}}" on-click="{{row_click_event}}">{{item}}</td>
         </template>
       </tr>
     </template>
@@ -3148,6 +3153,53 @@ Polymer('ui-table', {
     }
     return temp_data;
   },
+  search: function(searchTerm) {
+    var i, item, temp_data, _fn, _i, _len, _ref;
+    temp_data = [];
+    _ref = this.data.data;
+    _fn = (function(_this) {
+      return function(item, searchTerm) {
+        var column, itemLoc, j, temp_value, _j, _len1, _ref1, _results;
+        _ref1 = _this.data.columns;
+        _results = [];
+        for (j = _j = 0, _len1 = _ref1.length; _j < _len1; j = ++_j) {
+          column = _ref1[j];
+          temp_value = item[j];
+          if (!temp_value) {
+            temp_value = "";
+          } else {
+            temp_value = temp_value.toString().toLowerCase();
+          }
+          console.log(temp_value.indexOf(searchTerm.toString().toLowerCase()) > -1);
+          if (temp_value.indexOf(searchTerm.toString().toLowerCase()) > -1) {
+            itemLoc = [];
+            itemLoc.push(j);
+            itemLoc.push(i);
+            _results.push(temp_data.push(itemLoc));
+          } else {
+            _results.push(void 0);
+          }
+        }
+        return _results;
+      };
+    })(this);
+    for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+      item = _ref[i];
+      _fn(item, searchTerm);
+    }
+    return temp_data;
+  },
+  filter: function(selectedItems, filterByRows) {
+    var i, item, temp_data, _i, _len;
+    temp_data = [];
+    if (filterByRows) {
+      for (i = _i = 0, _len = selectedItems.length; _i < _len; i = ++_i) {
+        item = selectedItems[i];
+        temp_data.push(this.data.data[item[1]]);
+      }
+    }
+    return temp_data;
+  },
   sort_data: function() {
     var int_sort, item, _i, _len, _ref;
     _ref = this.data.data;
@@ -3179,14 +3231,13 @@ Polymer('ui-table', {
     }
     return this.sort_data();
   },
-  filter: function(e) {
-    var i, item, target_column, target_value, temp_data, _fn, _i, _len, _ref;
-    target_column = Number(e.target.getAttribute('data-column'));
-    target_value = e.target.textContent.toLowerCase();
+  filter_event: function(e) {
+    var i, item, targetElement, target_column, target_value, temp_data, _fn, _i, _len, _ref;
+    targetElement = this.itemSelected.pop();
+    target_column = Number(targetElement.getAttribute('data-column'));
+    target_value = targetElement.textContent.toLowerCase();
     if (this.filtered !== true) {
       this.backup_data = this.data.data;
-    }
-    if (this.filtered !== true) {
       this.filtered = true;
     }
     temp_data = [];
@@ -3216,29 +3267,50 @@ Polymer('ui-table', {
     return this.filtered = false;
   },
   row_click_event: function(e) {
-    var targetRow;
+    var rowClickValue, targetColumn, targetElement, targetRow;
     targetRow = Number(e.target.getAttribute('data-row'));
+    targetColumn = Number(e.target.getAttribute('data-column'));
+    targetElement = e.target;
     if (this.clickTimer && this.clickTimer !== null) {
       clearTimeout(this.clickTimer);
-      return this.clickTimer = null;
+      this.clickTimer = null;
+      rowClickValue = this.data.data[targetRow][0];
+      if (this.rowClickReturn === 'true') {
+        return this.fire('ui-table-row-click', rowClickValue);
+      }
     } else {
       return this.clickTimer = setTimeout((function(_this) {
         return function() {
-          var rowClickValue;
           _this.clickTimer = null;
-          if (_this.rowClickReturn === 'true') {
-            rowClickValue = _this.data.data[targetRow][0];
-            return _this.fire('ui-table-row-click', rowClickValue);
+          if (_this.itemSelected.length > 0) {
+            _this.itemSelected[0].removeAttribute('class', 'selectedCell');
+            _this.itemSelected.pop();
           }
+          _this.itemSelected.push(targetElement);
+          return targetElement.setAttribute('class', 'selectedCell');
         };
       })(this), 500);
+    }
+  },
+  search_filter: function(e) {
+    var filterLocations, searchText;
+    searchText = this.$.searchText.value;
+    filterLocations = [];
+    if (searchText !== "") {
+      filterLocations = this.search(searchText);
+      if (this.filtered !== true) {
+        this.backup_data = this.data.data;
+        this.filtered = true;
+      }
+      return this.data.data = this.filter(filterLocations, true);
     }
   },
   created: function() {},
   ready: function() {},
   attached: function() {},
   domReady: function() {
-    return this.filtered = false;
+    this.filtered = false;
+    return this.itemSelected = [];
   },
   detached: function() {}
 });
