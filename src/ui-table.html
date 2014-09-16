@@ -1,3 +1,14 @@
+<polymer-element name="ui-cell" attributes="html">
+  <content></content>
+  <script>
+    Polymer('ui-cell', {
+      htmlChanged: function(){
+        this.innerHTML = this.html;
+      }
+    })
+  </script>
+</polymer-element>
+
 <polymer-element name="ui-table" attributes="rowClickReturn">
 
 <template>
@@ -7,20 +18,27 @@
   <button hidden?="{{filtered == false}}" on-click="{{reset_filter}}" style="float:right;">Reset Filter</button>
   <button hidden?="{{itemSelected == undefined}}" on-click="{{filter_event}}" style="float:right;">Filter</button>
   <div id="search"><label>Search: </label><input id="searchText"></input><button id="searchButton" on-click="{{search_filter}}">Go</button></div>
-  <table border="1" style="width:100%;">
+  <table id="table" border="1" style="width:100%;">
     <tr>
-      <template repeat="{{column, i in data.columns}}">
-        <td id="column_{{i}}" on-click="{{sort}}" hidden?="{{i == 0}}" style="position:relative"><span style="display: block;padding-right: 15px;position: relative;">{{column}}</span>
-          <icon hidden?="{{i == sort_column}}" sort style="position: absolute;top: 10px;right: 10px;"></icon>
-          <icon hidden?="{{i != sort_column || 0 == sort_order}}" sort-asc style="position: absolute;top: 10px;right: 10px;"></icon>
-          <icon hidden?="{{i != sort_column || 1 == sort_order}}" sort-desc style="position: absolute;top: 10px;right: 10px;"></icon>
+      <template repeat="{{column, i in columns}}">
+        <td hidden?="{{column.hidden == true}}" id="column_{{column.columnName}}" on-click="{{sort}}" hidden?="{{i == 0}}" style="position:relative"><span style="display: block;padding-right: 15px;position: relative;">{{column.columnName}}</span>
+          <icon hidden?="{{column.columnName == sort_column}}" sort style="position: absolute;top: 10px;right: 10px;"></icon>
+          <icon hidden?="{{column.columnName != sort_column || 0 == sort_order}}" sort-asc style="position: absolute;top: 10px;right: 10px;"></icon>
+          <icon hidden?="{{column.columnName != sort_column || 1 == sort_order}}" sort-desc style="position: absolute;top: 10px;right: 10px;"></icon>
         </td>
       </template>
     </tr>
-    <template repeat="{{data, d in data.data}}">
+    <template id="row" repeat="{{row, d in json.data}}">
       <tr id="row_{{d}}">
-        <template repeat="{{item, i in data}}">
-          <td hidden?="{{i == 0}}" data-column="{{i}}" data-row="{{d}}" on-click="{{row_click_event}}">{{item}}</td>
+        <template repeat="{{column, i in columns}}">
+          <td hidden?="{{shownColumns[i] == false}}" data-column="{{column.columnName}}" data-row="{{d}}" on-click="{{row_click_event}}" data="{{row[column.columnName] | getValue('data')}}">
+            <template if="{{preDefColumns[i] == false}}">
+              <content>{{row[column.columnName] | getValue('data')}}</content>
+            </template>
+            <template if="{{preDefColumns[i] == true}}">
+              <ui-cell html="{{row[column.columnName] | getValue('html')}}"></ui-cell>
+            </template>
+          </td>
         </template>
       </tr>
     </template>

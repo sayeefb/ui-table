@@ -1,3 +1,14 @@
+<polymer-element name="ui-cell" attributes="html">
+  <content></content>
+  <script>
+    Polymer('ui-cell', {
+      htmlChanged: function(){
+        this.innerHTML = this.html;
+      }
+    })
+  </script>
+</polymer-element>
+
 <polymer-element name="ui-table" attributes="rowClickReturn">
 
 <template>
@@ -3024,20 +3035,27 @@ icon[youtube-square]:before,
   <button hidden?="{{filtered == false}}" on-click="{{reset_filter}}" style="float:right;">Reset Filter</button>
   <button hidden?="{{itemSelected == undefined}}" on-click="{{filter_event}}" style="float:right;">Filter</button>
   <div id="search"><label>Search: </label><input id="searchText"><button id="searchButton" on-click="{{search_filter}}">Go</button></div>
-  <table border="1" style="width:100%;">
+  <table id="table" border="1" style="width:100%;">
     <tr>
-      <template repeat="{{column, i in data.columns}}">
-        <td id="column_{{i}}" on-click="{{sort}}" hidden?="{{i == 0}}" style="position:relative"><span style="display: block;padding-right: 15px;position: relative;">{{column}}</span>
+      <template repeat="{{column, i in columns}}">
+        <td hidden?="{{column.hidden == true}}" id="column_{{i}}" on-click="{{sort}}" style="position:relative"><span style="display: block;padding-right: 15px;position: relative;">{{column.columnName}}</span>
           <icon hidden?="{{i == sort_column}}" sort="" style="position: absolute;top: 10px;right: 10px;"></icon>
           <icon hidden?="{{i != sort_column || 0 == sort_order}}" sort-asc="" style="position: absolute;top: 10px;right: 10px;"></icon>
           <icon hidden?="{{i != sort_column || 1 == sort_order}}" sort-desc="" style="position: absolute;top: 10px;right: 10px;"></icon>
         </td>
       </template>
     </tr>
-    <template repeat="{{data, d in data.data}}">
+    <template id="row" repeat="{{row, d in json.data}}">
       <tr id="row_{{d}}">
-        <template repeat="{{item, i in data}}">
-          <td hidden?="{{i == 0}}" data-column="{{i}}" data-row="{{d}}" on-click="{{row_click_event}}">{{item}}</td>
+        <template repeat="{{column, i in columns}}">
+          <td hidden?="{{shownColumns[i] == false}}" data-column="{{column.columnName}}" data-row="{{d}}" on-click="{{row_click_event}}" data="{{row[column.columnName] | getValue(&apos;data&apos;)}}">
+            <template if="{{preDefColumns[i] == false}}">
+              <content>{{row[column.columnName] | getValue(&apos;data&apos;)}}</content>
+            </template>
+            <template if="{{preDefColumns[i] == true}}">
+              <ui-cell html="{{row[column.columnName] | getValue(&apos;html&apos;)}}"></ui-cell>
+            </template>
+          </td>
         </template>
       </tr>
     </template>
@@ -3048,19 +3066,7 @@ var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; 
 
 Polymer('ui-table', {
   jsonChanged: function(old_val, new_val) {
-    return this.data = this.format_json();
-  },
-  dataChanged: function(old_val, new_val) {
-    var data, _i, _len, _ref;
-    if (this.rowClickReturn !== "true" && this.rowClickAdjusted !== true) {
-      this.data.columns.unshift("");
-      _ref = this.data.data;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        data = _ref[_i];
-        data.unshift("");
-      }
-      return this.rowClickAdjusted = true;
-    }
+    return this.format_json();
   },
   if_int_sort: function(item) {
     if (item !== void 0 && isNaN(item)) {
@@ -3112,65 +3118,68 @@ Polymer('ui-table', {
     }
   },
   format_json: function() {
-    var item, key, temp_data, temp_item, _fn, _fn1, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
-    temp_data = {};
-    temp_data.columns = [];
-    temp_data.data = [];
-    temp_item = [];
-    _ref = this.json;
-    _fn = (function(_this) {
-      return function(item) {
-        var key, _results;
-        _results = [];
-        for (key in item) {
-          _results.push((function(key) {
-            if (__indexOf.call(temp_data.columns, key) < 0) {
-              return temp_data.columns.push(key);
-            }
-          })(key));
-        }
-        return _results;
-      };
-    })(this);
+    var columnList, item, tempColumn, tempPreDef, _i, _len, _ref, _results;
+    columnList = [];
+    tempColumn = {};
+    tempPreDef = [];
+    _ref = this.json.data;
+    _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       item = _ref[_i];
-      _fn(item);
+      _results.push((function(_this) {
+        return function(item) {
+          var key, p, _j, _len1, _ref1, _results1;
+          _results1 = [];
+          for (key in item) {
+            if (__indexOf.call(columnList, key) < 0) {
+              tempColumn.columnName = key;
+              if (__indexOf.call(_this.json.hiddenColumns, key) < 0) {
+                tempColumn.hidden = false;
+                _this.shownColumns.push(true);
+              } else {
+                tempColumn.hidden = true;
+                _this.shownColumns.push(false);
+              }
+              _ref1 = _this.json.preDef;
+              for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+                p = _ref1[_j];
+                tempPreDef.push(p.column);
+              }
+              if (__indexOf.call(tempPreDef, key) >= 0) {
+                _this.preDefColumns.push(true);
+              } else {
+                _this.preDefColumns.push(false);
+              }
+              columnList.push(key);
+              _this.columns.push(tempColumn);
+              _results1.push(tempColumn = {});
+            } else {
+              _results1.push(void 0);
+            }
+          }
+          return _results1;
+        };
+      })(this)(item));
     }
-    _ref1 = this.json;
-    _fn1 = (function(_this) {
-      return function(item) {};
-    })(this);
-    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-      item = _ref1[_j];
-      _fn1(item);
-      _ref2 = temp_data.columns;
-      for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-        key = _ref2[_k];
-        temp_item.push(item[key]);
-      }
-      temp_data.data.push(temp_item);
-      temp_item = [];
-    }
-    return temp_data;
+    return _results;
   },
   search: function(searchTerm) {
     var i, item, temp_data, _fn, _i, _len, _ref;
     temp_data = [];
-    _ref = this.data.data;
+    _ref = this.json.data;
     _fn = (function(_this) {
       return function(item, searchTerm) {
         var column, itemLoc, j, temp_value, _j, _len1, _ref1, _results;
-        _ref1 = _this.data.columns;
+        _ref1 = _this.columns;
         _results = [];
         for (j = _j = 0, _len1 = _ref1.length; _j < _len1; j = ++_j) {
           column = _ref1[j];
-          temp_value = item[j];
-          if (!temp_value) {
+          if (!_this.getValue(item[column.columnName], 'data')) {
             temp_value = "";
           } else {
+            temp_value = _this.getValue(item[column.columnName], 'data');
             temp_value = temp_value.toString().toLowerCase();
           }
-          console.log(temp_value.indexOf(searchTerm.toString().toLowerCase()) > -1);
           if (temp_value.indexOf(searchTerm.toString().toLowerCase()) > -1) {
             itemLoc = [];
             itemLoc.push(j);
@@ -3195,10 +3204,17 @@ Polymer('ui-table', {
     if (filterByRows) {
       for (i = _i = 0, _len = selectedItems.length; _i < _len; i = ++_i) {
         item = selectedItems[i];
-        temp_data.push(this.data.data[item[1]]);
+        temp_data.push(this.json.data[item[1]]);
       }
     }
     return temp_data;
+  },
+  getValue: function(item, key) {
+    if (typeof item === 'object') {
+      return item[key];
+    } else {
+      return item;
+    }
   },
   sort_data: function() {
     var int_sort, item, _i, _len, _ref;
@@ -3235,7 +3251,11 @@ Polymer('ui-table', {
     var i, item, targetElement, target_column, target_value, temp_data, _fn, _i, _len, _ref;
     targetElement = this.itemSelected.pop();
     target_column = Number(targetElement.getAttribute('data-column'));
-    target_value = targetElement.textContent.toLowerCase();
+    if (this.preDef[target_column] !== "") {
+      target_value = targetElement.getAttribute('data').toLowerCase();
+    } else {
+      target_value = targetElement.textContent.toLowerCase();
+    }
     if (this.filtered !== true) {
       this.backup_data = this.data.data;
       this.filtered = true;
@@ -3263,21 +3283,32 @@ Polymer('ui-table', {
     return this.data.data = temp_data;
   },
   reset_filter: function() {
-    this.data.data = this.backup_data;
+    this.json.data = this.backup_data;
     return this.filtered = false;
   },
   row_click_event: function(e) {
-    var rowClickValue, targetColumn, targetElement, targetRow;
+    var c, column, rowClickValue, targetColumn, targetColumnNumber, targetElement, targetRow, _i, _len, _ref;
     targetRow = Number(e.target.getAttribute('data-row'));
-    targetColumn = Number(e.target.getAttribute('data-column'));
+    targetColumn = e.target.getAttribute('data-column');
+    targetColumnNumber = 0;
     targetElement = e.target;
+    _ref = this.columns;
+    for (c = _i = 0, _len = _ref.length; _i < _len; c = ++_i) {
+      column = _ref[c];
+      if (column.columnName === targetColumn) {
+        targetColumnNumber = c;
+      }
+    }
     if (this.clickTimer && this.clickTimer !== null) {
       clearTimeout(this.clickTimer);
       this.clickTimer = null;
-      rowClickValue = this.data.data[targetRow][0];
-      if (this.rowClickReturn === 'true') {
-        return this.fire('ui-table-row-click', rowClickValue);
-      }
+      rowClickValue = this.json.data[targetRow];
+      this.fire('ui-table-row-doubleClick', rowClickValue);
+      return this.fire('ui-table-cell-doubleClick', {
+        "cellData": rowClickValue[targetColumn],
+        "cellRow": targetRow,
+        "columnName": targetColumn
+      });
     } else {
       return this.clickTimer = setTimeout((function(_this) {
         return function() {
@@ -3287,7 +3318,15 @@ Polymer('ui-table', {
             _this.itemSelected.pop();
           }
           _this.itemSelected.push(targetElement);
-          return targetElement.setAttribute('class', 'selectedCell');
+          targetElement.setAttribute('class', 'selectedCell');
+          _this.fire('ui-table-row-click', rowClickValue);
+          return _this.fire('ui-table-cell-click', {
+            "cellData": rowClickValue[targetColumn]
+          }, _this.fire('ui-table-cell-doubleClick', {
+            "cellData": rowClickValue[targetColumn],
+            "cellRow": targetRow,
+            "columnName": targetColumn
+          }));
         };
       })(this), 500);
     }
@@ -3299,10 +3338,10 @@ Polymer('ui-table', {
     if (searchText !== "") {
       filterLocations = this.search(searchText);
       if (this.filtered !== true) {
-        this.backup_data = this.data.data;
+        this.backup_data = this.json.data;
         this.filtered = true;
       }
-      return this.data.data = this.filter(filterLocations, true);
+      return this.json.data = this.filter(filterLocations, true);
     }
   },
   created: function() {},
@@ -3310,7 +3349,10 @@ Polymer('ui-table', {
   attached: function() {},
   domReady: function() {
     this.filtered = false;
-    return this.itemSelected = [];
+    this.itemSelected = [];
+    this.columns = [];
+    this.shownColumns = [];
+    return this.preDefColumns = [];
   },
   detached: function() {}
 });
