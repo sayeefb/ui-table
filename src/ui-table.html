@@ -1,48 +1,61 @@
-<polymer-element name="ui-cell" attributes="html">
-  <content></content>
-  <script>
-    Polymer('ui-cell', {
-      htmlChanged: function(){
-        this.innerHTML = this.html;
-      }
-    })
-  </script>
+<polymer-element name="ui-safe" attributes="html value">
+  <template>
+  </template>
 </polymer-element>
 
-<polymer-element name="ui-table" attributes="rowClickReturn">
 
-<template>
-  <link rel="stylesheet" type="text/css" href="./ui-table.less">
-  <link rel="stylesheet" href="../node_modules/ui-fonts/node_modules/ui-font-awesome/icons.less">
-  <link rel="stylesheet" href="../node_modules/ui-fonts/node_modules/ui-font-awesome/font-awesome.less">
-  <button hidden?="{{filtered == false}}" on-click="{{reset_filter}}" style="float:right;">Reset Filter</button>
-  <button hidden?="{{itemSelected == undefined}}" on-click="{{filter_event}}" style="float:right;">Filter</button>
-  <div id="search"><label>Search: </label><input id="searchText"></input><button id="searchButton" on-click="{{search_filter}}">Go</button></div>
-  <table id="table" border="1" style="width:100%;">
-    <tr>
-      <template repeat="{{column, i in columns}}">
-        <td hidden?="{{column.hidden == true}}" id="column_{{column.columnName}}" on-click="{{sort}}" hidden?="{{i == 0}}" style="position:relative"><span style="display: block;padding-right: 15px;position: relative;">{{column.columnName}}</span>
-          <icon hidden?="{{column.columnName == sort_column}}" sort style="position: absolute;top: 10px;right: 10px;"></icon>
-          <icon hidden?="{{column.columnName != sort_column || 0 == sort_order}}" sort-asc style="position: absolute;top: 10px;right: 10px;"></icon>
-          <icon hidden?="{{column.columnName != sort_column || 1 == sort_order}}" sort-desc style="position: absolute;top: 10px;right: 10px;"></icon>
-        </td>
-      </template>
-    </tr>
-    <template id="row" repeat="{{row, d in json.data}}">
-      <tr id="row_{{d}}">
-        <template repeat="{{column, i in columns}}">
-          <td hidden?="{{shownColumns[i] == false}}" data-column="{{column.columnName}}" data-row="{{d}}" on-click="{{row_click_event}}" data="{{row[column.columnName] | getValue('data')}}">
-            <template if="{{preDefColumns[i] == false}}">
-              <content>{{row[column.columnName] | getValue('data')}}</content>
+<polymer-element name="ui-th" attributes="col">
+  <template>    
+  </template>
+</polymer-element>
+
+<polymer-element name="ui-td" attributes="col">
+  <template>    
+  </template>
+</polymer-element>
+
+<polymer-element name="ui-th-sortable" attributes="dir">
+  <template>    
+    <content>
+    </content>
+    <icon>askfhsa</icon>
+  </template>
+</polymer-element>
+
+
+<polymer-element name="ui-table" attributes="value">
+
+  <template>
+    <link rel="stylesheet" type="text/css" href="./ui-table.less">
+        
+    <content id="cellTemplates" select="ui-td"></content>
+    <content id="headerTemplates" select="ui-th"></content>
+    
+    <table>
+      <thead>        
+          <template repeat="{{header in headers | generateHeaders}}">            
+              <th col="{{header.col}}"><ui-safe html="{{header.html}}"></ui-safe></th>
+          </template>
+      </thead>
+      
+      <tbody>            
+        <template repeat="{{row in value}}">      
+          <tr>        
+            
+            <template repeat="{{cell in row | generateCells }}">
+              <td col="{{cell.key}}">                  
+                  <ui-safe html="{{cell}}" value="{{cell.model}}"></ui-safe>
+              </td>
             </template>
-            <template if="{{preDefColumns[i] == true}}">
-              <ui-cell html="{{row[column.columnName] | getValue('html')}}"></ui-cell>
-            </template>
-          </td>
+          
+          </tr>
         </template>
-      </tr>
-    </template>
-  </table>
-</template>
-<script src="./ui-table.litcoffee"></script>
+
+      </tbody>
+    </table>    
+  </template>
+
 </polymer-element>
+
+
+<script src="./ui-table.litcoffee"></script>
