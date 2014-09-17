@@ -3038,10 +3038,10 @@ icon[youtube-square]:before,
   <table id="table" border="1" style="width:100%;">
     <tr>
       <template repeat="{{column, i in columns}}">
-        <td hidden?="{{column.hidden == true}}" id="column_{{i}}" on-click="{{sort}}" style="position:relative"><span style="display: block;padding-right: 15px;position: relative;">{{column.columnName}}</span>
-          <icon hidden?="{{i == sort_column}}" sort="" style="position: absolute;top: 10px;right: 10px;"></icon>
-          <icon hidden?="{{i != sort_column || 0 == sort_order}}" sort-asc="" style="position: absolute;top: 10px;right: 10px;"></icon>
-          <icon hidden?="{{i != sort_column || 1 == sort_order}}" sort-desc="" style="position: absolute;top: 10px;right: 10px;"></icon>
+        <td hidden?="{{column.hidden == true}}" id="column_{{column.columnName}}" on-click="{{sort}}" style="position:relative"><span style="display: block;padding-right: 15px;position: relative;">{{column.columnName}}</span>
+          <icon hidden?="{{column.columnName == sort_column}}" sort="" style="position: absolute;top: 10px;right: 10px;"></icon>
+          <icon hidden?="{{column.columnName != sort_column || 0 == sort_order}}" sort-asc="" style="position: absolute;top: 10px;right: 10px;"></icon>
+          <icon hidden?="{{column.columnName != sort_column || 1 == sort_order}}" sort-desc="" style="position: absolute;top: 10px;right: 10px;"></icon>
         </td>
       </template>
     </tr>
@@ -3065,6 +3065,13 @@ icon[youtube-square]:before,
 var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 Polymer('ui-table', {
+  getValue: function(item, key) {
+    if (typeof item === 'object') {
+      return item[key];
+    } else {
+      return item;
+    }
+  },
   jsonChanged: function(old_val, new_val) {
     return this.format_json();
   },
@@ -3077,20 +3084,20 @@ Polymer('ui-table', {
   },
   comparator_non_int: function(a, b) {
     if (window.sort_order === 1) {
-      if (a[window.sort_column] === void 0) {
+      if (window.getValue(a[window.sort_column], 'data') === void 0) {
         return 1;
-      } else if (a[window.sort_column] < b[window.sort_column]) {
+      } else if (window.getValue(a[window.sort_column], 'data') < window.getValue(b[window.sort_column], 'data')) {
         return -1;
-      } else if (a[window.sort_column] > b[window.sort_column]) {
+      } else if (window.getValue(a[window.sort_column], 'data') > window.getValue(b[window.sort_column], 'data')) {
         return 1;
       }
       return 0;
     } else {
-      if (a[window.sort_column] === void 0) {
+      if (window.getValue(a[window.sort_column], 'data') === void 0) {
         return 1;
-      } else if (a[window.sort_column] > b[window.sort_column]) {
+      } else if (window.getValue(a[window.sort_column], 'data') > window.getValue(b[window.sort_column], 'data')) {
         return -1;
-      } else if (a[window.sort_column] < b[window.sort_column]) {
+      } else if (window.getValue(a[window.sort_column], 'data') < window.getValue(b[window.sort_column], 'data')) {
         return 1;
       }
       return 0;
@@ -3098,20 +3105,20 @@ Polymer('ui-table', {
   },
   comparator_int: function(a, b) {
     if (window.sort_order === 1) {
-      if (a[window.sort_column] === void 0) {
+      if (window.getValue(a[window.sort_column], 'data') === void 0) {
         return 1;
-      } else if (Number(a[window.sort_column] < Number(b[window.sort_column]))) {
+      } else if (Number(window.getValue(a[window.sort_column], 'data') < Number(window.getValue(b[window.sort_column], 'data')))) {
         return -1;
-      } else if (Number(a[window.sort_column] > Number(b[window.sort_column]))) {
+      } else if (Number(window.getValue(a[window.sort_column], 'data') > Number(window.getValue(b[window.sort_column], 'data')))) {
         return 1;
       }
       return 0;
     } else {
-      if (a[window.sort_column] === void 0) {
+      if (window.getValue(a[window.sort_column], 'data') === void 0) {
         return 1;
-      } else if (Number(a[window.sort_column] > Number(b[window.sort_column]))) {
+      } else if (Number(window.getValue(a[window.sort_column], 'data') > Number(window.getValue(b[window.sort_column], 'data')))) {
         return -1;
-      } else if (Number(a[window.sort_column] < Number(b[window.sort_column]))) {
+      } else if (Number(window.getValue(a[window.sort_column], 'data') < Number(window.getValue(b[window.sort_column], 'data')))) {
         return 1;
       }
       return 0;
@@ -3209,63 +3216,62 @@ Polymer('ui-table', {
     }
     return temp_data;
   },
-  getValue: function(item, key) {
-    if (typeof item === 'object') {
-      return item[key];
-    } else {
-      return item;
+  clearSelectedItems: function() {
+    var i, item, _i, _len, _ref;
+    _ref = this.itemSelected;
+    for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+      item = _ref[i];
+      this.itemSelected[i].removeAttribute('class', 'selectedCell');
     }
+    return this.itemSelected = [];
   },
   sort_data: function() {
-    var int_sort, item, _i, _len, _ref;
-    _ref = this.data.data;
+    var intSort, item, _i, _len, _ref;
+    _ref = this.json.data;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       item = _ref[_i];
-      int_sort = this.if_int_sort(item[this.sort_column]);
+      intSort = this.if_int_sort(item[this.sort_column]);
     }
     window.sort_column = this.sort_column;
     window.sort_order = this.sort_order;
-    if (int_sort) {
-      return this.data.data = this.data.data.sort(this.comparator_int);
+    window.getValue = this.getValue;
+    if (intSort) {
+      return this.json.data = this.json.data.sort(this.comparator_int);
     } else {
-      return this.data.data = this.data.data.sort(this.comparator_non_int);
+      return this.json.data = this.json.data.sort(this.comparator_non_int);
     }
   },
   sort: function(e) {
-    var target_id;
-    target_id = e.target.id.substring(e.target.id.indexOf("_") + 1);
-    if (target_id === "") {
-      target_id = e.target.parentElement.id.substring(e.target.parentElement.id.indexOf("_") + 1);
+    var columnName;
+    columnName = e.target.id.substring(e.target.id.indexOf("_") + 1);
+    if (columnName === "") {
+      columnName = e.target.parentElement.id.substring(e.target.parentElement.id.indexOf("_") + 1);
     }
-    switch (parseInt(target_id)) {
+    switch (columnName) {
       case this.sort_column:
         this.sort_order = (this.sort_order + 1) % 2;
         break;
       default:
-        this.sort_column = parseInt(target_id);
+        this.sort_column = columnName;
         this.sort_order = 0;
     }
     return this.sort_data();
   },
   filter_event: function(e) {
     var i, item, targetElement, target_column, target_value, temp_data, _fn, _i, _len, _ref;
-    targetElement = this.itemSelected.pop();
-    target_column = Number(targetElement.getAttribute('data-column'));
-    if (this.preDef[target_column] !== "") {
-      target_value = targetElement.getAttribute('data').toLowerCase();
-    } else {
-      target_value = targetElement.textContent.toLowerCase();
-    }
+    targetElement = this.itemSelected[0];
+    target_column = targetElement.getAttribute('data-column');
+    target_value = targetElement.getAttribute('data').toLowerCase();
     if (this.filtered !== true) {
-      this.backup_data = this.data.data;
+      this.backup_data = this.json.data;
       this.filtered = true;
     }
     temp_data = [];
-    _ref = this.data.data;
+    _ref = this.json.data;
     _fn = (function(_this) {
       return function(item, target_column, target_value) {
         var temp_value;
-        temp_value = item[target_column];
+        temp_value = _this.getValue(item[target_column], 'data');
         if (!temp_value) {
           temp_value = "";
         } else {
@@ -3280,11 +3286,13 @@ Polymer('ui-table', {
       item = _ref[i];
       _fn(item, target_column, target_value);
     }
-    return this.data.data = temp_data;
+    this.clearSelectedItems();
+    return this.json.data = temp_data;
   },
   reset_filter: function() {
     this.json.data = this.backup_data;
-    return this.filtered = false;
+    this.filtered = false;
+    return this.clearSelectedItems();
   },
   row_click_event: function(e) {
     var c, column, rowClickValue, targetColumn, targetColumnNumber, targetElement, targetRow, _i, _len, _ref;
@@ -3292,6 +3300,7 @@ Polymer('ui-table', {
     targetColumn = e.target.getAttribute('data-column');
     targetColumnNumber = 0;
     targetElement = e.target;
+    rowClickValue = this.json.data[targetRow];
     _ref = this.columns;
     for (c = _i = 0, _len = _ref.length; _i < _len; c = ++_i) {
       column = _ref[c];
@@ -3302,33 +3311,33 @@ Polymer('ui-table', {
     if (this.clickTimer && this.clickTimer !== null) {
       clearTimeout(this.clickTimer);
       this.clickTimer = null;
-      rowClickValue = this.json.data[targetRow];
-      this.fire('ui-table-row-doubleClick', rowClickValue);
+      this.fire('ui-table-row-doubleClick', {
+        "rowData": rowClickValue,
+        "rowNum": targetRow
+      });
       return this.fire('ui-table-cell-doubleClick', {
         "cellData": rowClickValue[targetColumn],
         "cellRow": targetRow,
-        "columnName": targetColumn
+        "cellColumnName": targetColumn
       });
     } else {
       return this.clickTimer = setTimeout((function(_this) {
         return function() {
           _this.clickTimer = null;
-          if (_this.itemSelected.length > 0) {
-            _this.itemSelected[0].removeAttribute('class', 'selectedCell');
-            _this.itemSelected.pop();
-          }
+          _this.clearSelectedItems();
           _this.itemSelected.push(targetElement);
           targetElement.setAttribute('class', 'selectedCell');
-          _this.fire('ui-table-row-click', rowClickValue);
-          return _this.fire('ui-table-cell-click', {
-            "cellData": rowClickValue[targetColumn]
-          }, _this.fire('ui-table-cell-doubleClick', {
+          _this.fire('ui-table-cell-click', {
             "cellData": rowClickValue[targetColumn],
             "cellRow": targetRow,
-            "columnName": targetColumn
-          }));
+            "cellColumnName": targetColumn
+          });
+          return _this.fire('ui-table-row-click', {
+            "rowData": rowClickValue,
+            "rowNum": targetRow
+          });
         };
-      })(this), 500);
+      })(this), 250);
     }
   },
   search_filter: function(e) {
