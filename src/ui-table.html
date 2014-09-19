@@ -1,56 +1,43 @@
-<polymer-element name="ui-safe" attributes="html value">
-  <template>
-  </template>
-</polymer-element>
-
-
 <polymer-element name="ui-th" attributes="col">
   <template>    
   </template>
 </polymer-element>
 
 <polymer-element name="ui-td" attributes="col">
-  <template>    
+  <template>
   </template>
 </polymer-element>
-
-<polymer-element name="ui-th-sortable" attributes="dir">
-  <template>    
-    <content>
-    </content>
-    <icon>askfhsa</icon>
-  </template>
-</polymer-element>
-
 
 <polymer-element name="ui-table" attributes="value">
-
+  
   <template>
     <link rel="stylesheet" type="text/css" href="./ui-table.less">
         
-    <content id="cellTemplates" select="ui-td"></content>
-    <content id="headerTemplates" select="ui-th"></content>
+    <content id="cells" select="ui-td"></content>
+    <content id="headers" select="ui-th"></content>
     
-    <table>
+    <table>      
       <thead>        
-          <template repeat="{{header in headers | generateHeaders}}">            
-              <th col="{{header.col}}"><ui-safe html="{{header.html}}"></ui-safe></th>
+        <template repeat="{{row in _headers}}">
+          <template repeat="{{key in row | keys}}">
+            <th>              
+              <template ref="{{key}}-header" bind="{{row[key]}}">
+              </template>
+            </th>
           </template>
+        </template>
       </thead>
-      
-      <tbody>            
-        <template repeat="{{row in value}}">      
-          <tr>        
-            
-            <template repeat="{{cell in row | generateCells }}">
-              <td col="{{cell.key}}">                  
-                  <ui-safe html="{{cell}}" value="{{cell.model}}"></ui-safe>
+      <tbody>         
+        <template repeat="{{row in _value}}">
+          <tr>                    
+            <template repeat="{{key in row | keys}}">
+              <td>
+                <template ref="{{key}}-cell" bind="{{row[key]}}">
+                </template>
               </td>
             </template>
-          
           </tr>
         </template>
-
       </tbody>
     </table>    
   </template>

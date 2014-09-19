@@ -1,30 +1,15 @@
-<polymer-element name="ui-safe" attributes="html data">
-  <template>
-  </template>
-</polymer-element>
-
-
 <polymer-element name="ui-th" attributes="col">
   <template>    
   </template>
 </polymer-element>
 
 <polymer-element name="ui-td" attributes="col">
-  <template>    
+  <template>
   </template>
 </polymer-element>
-
-<polymer-element name="ui-th-sortable" attributes="dir">
-  <template>    
-    <content>
-    </content>
-    <icon>askfhsa</icon>
-  </template>
-</polymer-element>
-
 
 <polymer-element name="ui-table" attributes="value">
-
+  
   <template>
     <style>::content > * {
   display: none;
@@ -34,27 +19,28 @@
 }
 </style>
         
-    <content id="cellTemplates" select="ui-td"></content>
-    <content id="headerTemplates" select="ui-th"></content>
+    <content id="cells" select="ui-td"></content>
+    <content id="headers" select="ui-th"></content>
     
-    <table>
+    <table>      
       <thead>        
-          
+        <template repeat="{{header in headers}}">
+          <th>
+            {{header}}
+          </th>
+        </template>
       </thead>
-      
-      <tbody>            
-        <template repeat="{{row in value}}">      
-          <tr>        
-            
-            <template repeat="{{cell in row | generateCells }}">
-              <td col="{{cell.key}}">                  
-                  <ui-safe html="{{cell}}"></ui-safe>
+      <tbody>         
+        <template repeat="{{row in _value }}">
+          <tr>                    
+            <template repeat="{{cell in row | keys }}">
+              <td>
+                <template ref="{{cell}}" bind="{{row[cell]}}">
+                </template>
               </td>
             </template>
-          
           </tr>
         </template>
-
       </tbody>
     </table>    
   </template>
@@ -63,45 +49,34 @@
 
 
 <script built="/Users/rfairchild/code/ui-table/src/ui-table.litcoffee">(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-Polymer('ui-safe', {
-  attached: function() {
-    if (this.html) {
-      this.shadowRoot.appendChild(this.html);
-      return Platform.performMicrotaskCheckpoint();
-    }
-  }
+Polymer('ui-table', {
+  valueChanged: function() {
+    this._value = this.value;
+    return this.headers = Object.keys(this.value[0]);
+  },
+  keys: Object.keys
 });
 
-Polymer('ui-table', {
-  generateCells: function(row) {
-    debugger;
-    var cellMap, nodes;
-    nodes = this.$.cellTemplates.getDistributedNodes().array();
-    cellMap = nodes.reduce(function(acc, template) {
-      var t;
-      t = document.createElement('template');
-      t.setAttribute('bind', '{{data}}');
-      t.innerHTML = template.innerHTML;
-      acc[template.getAttribute('col')] = t;
-      return acc;
-    }, {});
-    return Object.keys(row).map(function(key) {
-      var template;
-      template = cellMap[key];
-      template.key = key;
-      if (template) {
-        template.model = {
-          data: row[key]
-        };
-      }
-      return template;
-    });
-  },
-  attached: function() {
-    debugger;
+({
+  wrapDistributedNodes: function(nodes, type) {
+    console.debug('Wrapping nodes', nodes);
+    return nodes.getDistributedNodes().array().forEach((function(_this) {
+      return function(t) {
+        var wrapper;
+        wrapper = document.createElement('template');
+        wrapper.setAttribute('id', "" + (t.getAttribute('id')) + "-" + type);
+        wrapper.innerHTML = t.innerHTML;
+        return _this.shadowRoot.appendChild(wrapper);
+      };
+    })(this));
   },
   ready: function() {
-    debugger;
+    if (this.$.cells) {
+      this.wrapDistributedNodes(this.$.cells, 'cell');
+    }
+    if (this.$.headers) {
+      return this.wrapDistributedNodes(this.$.headers, 'header');
+    }
   }
 });
 
