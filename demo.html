@@ -10,6 +10,7 @@
     
     <link rel="import" href="node_modules/polymer/polymer.html">
     <link rel="import" href="src/ui-table.html">    
+    <link rel="import" href="node_modules/ui-fonts/fonts.html">
 
     <style>
       ui-table /deep/ td[col=consultation] {
@@ -27,11 +28,11 @@
   </head>
 
     
-  <body>
-    
+  <body>    
     <ui-table>      
-      <ui-th col="consultation">        
-        <i>Consultation</i>
+      <ui-th direction="asc" col="consultation" sortable="true">
+        Consultation
+        <icon sort></icon>       
       </ui-th>
       <ui-th col="contact">     
         Contact

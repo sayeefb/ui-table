@@ -1,5 +1,6 @@
-<polymer-element name="ui-th" attributes="col">
-  <template>    
+<polymer-element name="ui-th" attributes="col direction sortable" on-click="{{sort}}">
+  <template>
+    <content></content>
   </template>
 </polymer-element>
 
@@ -8,10 +9,12 @@
   </template>
 </polymer-element>
 
-<polymer-element name="ui-table" attributes="value">
+<polymer-element name="ui-table" attributes="value" on-ui-table-sort="{{sortColumn}}">
   
   <template>
     <link rel="stylesheet" type="text/css" href="./ui-table.less">
+    <link rel="stylesheet" href="../node_modules/ui-fonts/node_modules/ui-font-awesome/icons.less">
+    <link rel="stylesheet" href="../node_modules/ui-fonts/node_modules/ui-font-awesome/font-awesome.less">
         
     <content id="cells" select="ui-td"></content>
     <content id="headers" select="ui-th"></content>
