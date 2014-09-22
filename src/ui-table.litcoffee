@@ -1,13 +1,17 @@
 #ui-th-sortable
 
+    Polymer 'ui-th-sort-icon', {}
+
+
+#ui-th-sortable
+
     Polymer 'ui-th',
 
-      sortactiveChanged: ->
-        @active = @sortactive == "true"
-        @applySort()
+### Change handlers
 
-      directionChanged: ->
+      directionChanged: -> 
         @applySort()
+        @updateIcon()
 
       sortpropChanged: ->
         @applySort()
@@ -15,14 +19,30 @@
       colChanged: ->
         @applySort()
 
+### updateIcon()
+Call this to sync your sort icon with the current state
+
+      updateIcon: ->
+        sortIcon = @querySelector '[sort-icon]'
+        sortIcon.setAttribute 'direction', @direction
+
+### applySort()
+Syncs `direction`,`sortprop`,`col` and `active` if they are unset or falsey
+no event id dispatched.
+
+Dispatches: `ui-table-sort`, { direction, prop, col }
+
       applySort: ->        
-        return unless @direction and @active and @sortprop and @col
+        return unless @direction?.length and @sortprop and @col and @active
+
         @fire 'ui-table-sort',
           direction: @direction
-          prop: "#{@col}.#{@sortprop}"         
+          prop: @sortprop
+          col: @col
 
-      toggleDirection: (event, detail, element) ->        
-        @direction = if @direction == 'asc' then 'desc' else 'asc'
+      toggleDirection: (event, detail, element) ->                      
+        @direction = if @direction == 'asc' then 'desc' else 'asc'        
+        @active = true
 
 #ui-table 
 
@@ -37,23 +57,34 @@
         asc: (a,b) -> a >= b
         desc: (a,b) -> a <= b
 
-      sortChanged: ->
-        @sortDescriptor = @sort
+      sortChanged: ->            
         @applySort()
 
-      sortColumn: (event, descriptor) ->      
-        @sortDescriptor = descriptor
-        @applySort()
-
-      applySort: ->        
-        return unless @_value and @sortDescriptor        
-        @_value.sort (a,b) =>
+      sortColumn: (event, descriptor) ->
+        @sort = descriptor      
+        
+      updateHeaderSortStates: ->        
+        sortables = @shadowRoot?.querySelectorAll "th [sortable]"        
+                
+        sortables?.array().forEach (sortable) =>              
+          if sortable.getAttribute('col') != @sort.col
+            sortable.setAttribute 'active', false
+            sortable.setAttribute 'direction', ''
+          else
+            sortable.setAttribute 'active', true
+            sortable.setAttribute 'direction', @sort.direction            
           
-          d = @sortDescriptor
+      applySort: ->        
+        return unless @_value and @sort
+
+        @updateHeaderSortStates()
+        
+        @_value.sort (a,b) =>        
+          d = @sort
           compare = @sortFunctions[d.direction]
           
-          left = @propParser a, d.prop
-          right = @propParser b, d.prop
+          left = @propParser a[d.col], d.prop
+          right = @propParser b[d.col], d.prop
 
           compare left, right
 
@@ -65,12 +96,11 @@
 
       ready: ->        
         @addTemplates @$.cells, 'cell'
-        @addTemplates @$.headers, 'header'        
+        @addTemplates @$.headers, 'header'      
 
       valueChanged: ->
-        @_value = @value.slice(0) #reference copy
-        @_headers = [@_value[0]]
-        
-        @applySort()
+        @_value = @value?.slice(0) || [] #reference copy
+        @_headers = [@_value[0]]        
+        @applySort()        
       
        keys: Object.keys

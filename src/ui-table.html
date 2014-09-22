@@ -1,6 +1,18 @@
-<polymer-element name="ui-th" attributes="col direction sortable sortactive sortprop" on-click="{{toggleDirection}}">
+<polymer-element name="ui-th" attributes="col direction sortable sortactive sortprop active" on-click="{{toggleDirection}}">
   <template>
-    <content></content>
+    <content></content>  
+    <content select="[sort-icon]"></content>  
+  </template>
+</polymer-element>
+
+<polymer-element name="ui-th-sort-icon" attributes="direction">
+  <template>    
+    <link rel="stylesheet" type="text/css" href="./ui-table.less">  
+    <link rel="import" href="../node_modules/ui-fonts/fonts.html">
+
+    <icon sort-asc hide?="{{direction != 'asc'}}"></icon>
+    <icon sort-desc hide?="{{direction != 'desc'}}"></icon>
+    <icon sort hide?="{{direction}}"></icon>
   </template>
 </polymer-element>
 
@@ -13,8 +25,6 @@
   
   <template>
     <link rel="stylesheet" type="text/css" href="./ui-table.less">
-    <link rel="stylesheet" href="../node_modules/ui-fonts/node_modules/ui-font-awesome/icons.less">
-    <link rel="stylesheet" href="../node_modules/ui-fonts/node_modules/ui-font-awesome/font-awesome.less">
         
     <content id="cells" select="template[column]"></content>
     <content id="headers" select="template[header]"></content>
