@@ -10,7 +10,7 @@ An element to handle
 
     Polymer 'ui-th',
 
-## Change handlers
+### Change handlers
 Handlers that attempt to sync and only dispatch one event by calling `applySort()`.
 
       directionChanged: -> 
@@ -67,7 +67,7 @@ Comparators for native sort function. These can be overidden though I do not rec
         asc: (a,b) -> a >= b
         desc: (a,b) -> a <= b
 
-## Change handlers
+### Change handlers
 
 ### sortChanged()
 The `sort` property can be changed externally on the node or defined on your templates elements.
