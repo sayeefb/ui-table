@@ -30,19 +30,21 @@
     
   <body>    
     <ui-table>      
-      <ui-th direction="asc" col="consultation" sortable="true">
-        Consultation
-        <icon sort></icon>       
+      
+      <ui-th direction="asc" col="consultation" sortable="true" sortactive="true" sortprop="id.id">
+        Consultation        
       </ui-th>
-      <ui-th col="contact">     
+      <ui-th col="contact" col="contact" sortable="true" sortprop="id">
         Contact
       </ui-th>
+
       <ui-td col="consultation">        
-        <i>{{id}}</i>
+        <i>{{id.id}}</i>
       </ui-td>
       <ui-td col="contact">        
         {{id}}        
       </ui-td>
+
     </ui-table>
 
     <script>
@@ -51,7 +53,9 @@
         document.querySelector('ui-table').value = [
           {
             consultation: {
-              id: 12345
+              id: {
+                id: 12345
+              }
             },
             contact: {
               id: 'aksjfhkasldjhfkja'
@@ -59,7 +63,9 @@
           },
           {
             consultation: {
-              id: 12346
+              id: {
+                id: 12346
+              }
             },
             contact: {
               id: 1234

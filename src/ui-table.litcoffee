@@ -1,35 +1,61 @@
 #ui-th-sortable
 
     Polymer 'ui-th',
-      directionChanged: ->        
-        @sort null, null, true
 
-      sort: (event, element, force=false) ->
-        unless force
-          @direction = if @direction == 'asc' then 'desc' else 'asc'
+      sortactiveChanged: ->
+        @active = @sortactive == "true"
+        @applySort()
 
-        @fire 'ui-table-sort', { direction: @direction, col: @col }   
+      directionChanged: ->
+        @applySort()
+
+      sortpropChanged: ->
+        @applySort()
+
+      colChanged: ->
+        @applySort()
+
+      applySort: ->        
+        return unless @direction and @active and @sortprop and @col        
+        @fire 'ui-table-sort',
+          direction: @direction
+          prop: "#{@col}.#{@sortprop}"          
+
+      toggleDirection: (event, detail, element) ->        
+        @direction = if @direction == 'asc' then 'desc' else 'asc'
 
 #ui-table 
 
     Polymer 'ui-table',
+      
+      propParser: (doc, prop) ->        
+        prop.split('.').reduce (acc, p) -> 
+          acc[p]
+        , doc
+
       sortFunctions:
         asc: (a,b) -> a >= b
         desc: (a,b) -> a <= b
 
-      sortColumn: (event, descriptor) ->        
+      sortColumn: (event, descriptor) ->      
         @sortDescriptor = descriptor
-        console.log 'sortColumn'
         @sort()
 
-      sort: ->
-        debugger
-        return unless @value and @sortDescriptor
-
-        @value.sort (a,b) =>
+      sort: ->        
+        return unless @_value and @sortDescriptor        
+        @_value.sort (a,b) =>
+          
           d = @sortDescriptor
-          fn = @sortFunctions[d.direction]
-          fn(a[d.col], b[d.col])
+          compare = @sortFunctions[d.direction]
+          
+          left = @propParser a, d.prop
+          right = @propParser b, d.prop
+
+          compare left, right
+
+      withSortDescriptor: (obj) ->
+        obj.sort = @sortDescriptor
+        obj
 
       wrapDistributedNodes: (nodes, type) ->
         nodes.getDistributedNodes().array().forEach (t) =>
@@ -43,9 +69,9 @@
         @wrapDistributedNodes @$.headers, 'header'
 
       valueChanged: ->
-        @_value = @value
-        @_headers = [@value[0]]
-
-        @sort() if @_value != @value
+        @_value = @value.slice(0) #reference copy
+        @_headers = [@_value[0]]
+        
+        @sort()
       
        keys: Object.keys
