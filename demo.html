@@ -20,37 +20,46 @@
       ui-table /deep/ td[col=contact] {
         color:blue;
       }
-
-      ui-table /deep/ span.orange {
-        color: orange;
-      }
     </style>
   </head>
 
     
-  <body>    
-    <ui-table>      
+  <body> 
+        
+    <ui-table>
       
-      <ui-th direction="asc" col="consultation" sortable="true" sortactive="true" sortprop="id.id">
-        Consultation        
-      </ui-th>
-      <ui-th col="contact" col="contact" sortable="true" sortprop="id">
-        Contact
-      </ui-th>
+      <template header name="consultation">
+        <ui-th sortable="true" sortprop="id.id" col="consultation">
+          Consultation
+        </ui-th>
+      </template>
+    
+      <template header name="contact">
+        <ui-th sortable="true" sortprop="id" col="contact">
+          Contact
+        </ui-th>
+      </template>
 
-      <ui-td col="consultation">        
-        <i>{{id.id}}</i>
-      </ui-td>
-      <ui-td col="contact">        
-        {{id}}        
-      </ui-td>
+      <template column name="consultation">
+        <ui-th sortable="true" sortprop="id" col="consultation">
+          {{id.id}}
+        </ui-th>
+      </template>
 
+      <template column name="contact">
+        <ui-th sortable="true" sortprop="id" col="contact">
+          {{id}}
+        </ui-th>
+      </template>
+            
     </ui-table>
 
     <script>
 
       document.addEventListener('polymer-ready', function() {
-        document.querySelector('ui-table').value = [
+        var table = document.querySelector('ui-table')
+                
+        table.value = [
           {
             consultation: {
               id: {
@@ -72,6 +81,12 @@
             }
           }
         ]  
+
+        table.sort = { 
+          direction: 'desc',
+          prop: 'consultation.id.id'
+        }
+
       })  
       
     </script>

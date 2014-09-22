@@ -9,21 +9,21 @@
   </template>
 </polymer-element>
 
-<polymer-element name="ui-table" attributes="value" on-ui-table-sort="{{sortColumn}}">
+<polymer-element name="ui-table" attributes="value sort" on-ui-table-sort="{{sortColumn}}">
   
   <template>
     <link rel="stylesheet" type="text/css" href="./ui-table.less">
     <link rel="stylesheet" href="../node_modules/ui-fonts/node_modules/ui-font-awesome/icons.less">
     <link rel="stylesheet" href="../node_modules/ui-fonts/node_modules/ui-font-awesome/font-awesome.less">
         
-    <content id="cells" select="ui-td"></content>
-    <content id="headers" select="ui-th"></content>
+    <content id="cells" select="template[column]"></content>
+    <content id="headers" select="template[header]"></content>
     
     <table>      
       <thead>        
         <template repeat="{{row in _headers}}">
           <template repeat="{{key in row | keys}}">
-            <th>              
+            <th>
               <template ref="{{key}}-header" bind="{{row[key]}}">
               </template>
             </th>
@@ -34,7 +34,7 @@
         <template repeat="{{row in _value}}">
           <tr>                    
             <template repeat="{{key in row | keys}}">
-              <td>
+              <td col="{{key}}">
                 <template ref="{{key}}-cell" bind="{{row[key]}}">
                 </template>
               </td>

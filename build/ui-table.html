@@ -1,4 +1,4 @@
-<polymer-element name="ui-th" attributes="col direction sortable" on-click="{{sort}}">
+<polymer-element name="ui-th" attributes="col direction sortable sortactive sortprop" on-click="{{toggleDirection}}">
   <template>
     <content></content>
   </template>
@@ -2576,26 +2576,27 @@ icon[youtube-square]:before,
   font-style: normal;
 }
 </style>
-        
-    <content id="cells" select="ui-td"></content>
-    <content id="headers" select="ui-th"></content>
+    
+    <content></content>
+    
+    <!-- <content id="cells" select="ui-td"></content>
+    
     
     <table>      
-      <thead>        
-        <template repeat="{{row in _headers}}">
-          <template repeat="{{key in row | keys}}">
-            <th>              
-              <template ref="{{key}}-header" bind="{{row[key]}}">
-              </template>
-            </th>
+      <thead>         -->
+        <!-- <template repeat="{{row in _headers}}">
+          <template repeat="{{key in row | keys}}">            
+            <template ref="{{key}}-header" bind="{{row[key]}}">
+            </template>
           </template>
-        </template>
-      </thead>
+        </template> -->
+
+      <!-- </thead>
       <tbody>         
         <template repeat="{{row in _value}}">
           <tr>                    
             <template repeat="{{key in row | keys}}">
-              <td>
+              <td col="{{key}}">
                 <template ref="{{key}}-cell" bind="{{row[key]}}">
                 </template>
               </td>
@@ -2603,7 +2604,7 @@ icon[youtube-square]:before,
           </tr>
         </template>
       </tbody>
-    </table>    
+    </table>     -->
   </template>
 
 </polymer-element>
@@ -2611,24 +2612,39 @@ icon[youtube-square]:before,
 
 <script built="/Users/rfairchild/code/ui-table/src/ui-table.litcoffee">(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 Polymer('ui-th', {
-  directionChanged: function() {
-    return this.sort(null, null, true);
+  sortactiveChanged: function() {
+    this.active = this.sortactive === "true";
+    return this.applySort();
   },
-  sort: function(event, element, force) {
-    if (force == null) {
-      force = false;
-    }
-    if (!force) {
-      this.direction = this.direction === 'asc' ? 'desc' : 'asc';
+  directionChanged: function() {
+    return this.applySort();
+  },
+  sortpropChanged: function() {
+    return this.applySort();
+  },
+  colChanged: function() {
+    return this.applySort();
+  },
+  applySort: function() {
+    if (!(this.direction && this.active && this.sortprop && this.col)) {
+      return;
     }
     return this.fire('ui-table-sort', {
       direction: this.direction,
-      col: this.col
+      prop: "" + this.col + "." + this.sortprop
     });
+  },
+  toggleDirection: function(event, detail, element) {
+    return this.direction = this.direction === 'asc' ? 'desc' : 'asc';
   }
 });
 
 Polymer('ui-table', {
+  propParser: function(doc, prop) {
+    return prop.split('.').reduce(function(acc, p) {
+      return acc[p];
+    }, doc);
+  },
   sortFunctions: {
     asc: function(a, b) {
       return a >= b;
@@ -2639,22 +2655,26 @@ Polymer('ui-table', {
   },
   sortColumn: function(event, descriptor) {
     this.sortDescriptor = descriptor;
-    console.log('sortColumn');
     return this.sort();
   },
   sort: function() {
-    debugger;
-    if (!(this.value && this.sortDescriptor)) {
+    if (!(this._value && this.sortDescriptor)) {
       return;
     }
-    return this.value.sort((function(_this) {
+    return this._value.sort((function(_this) {
       return function(a, b) {
-        var d, fn;
+        var compare, d, left, right;
         d = _this.sortDescriptor;
-        fn = _this.sortFunctions[d.direction];
-        return fn(a[d.col], b[d.col]);
+        compare = _this.sortFunctions[d.direction];
+        left = _this.propParser(a, d.prop);
+        right = _this.propParser(b, d.prop);
+        return compare(left, right);
       };
     })(this));
+  },
+  withSortDescriptor: function(obj) {
+    obj.sort = this.sortDescriptor;
+    return obj;
   },
   wrapDistributedNodes: function(nodes, type) {
     return nodes.getDistributedNodes().array().forEach((function(_this) {
@@ -2662,21 +2682,16 @@ Polymer('ui-table', {
         var wrapper;
         wrapper = document.createElement('template');
         wrapper.setAttribute('id', "" + (t.getAttribute('col')) + "-" + type);
-        wrapper.innerHTML = t.outerHTML;
+        wrapper.innerHTML = t.innerHTML;
         return _this.shadowRoot.appendChild(wrapper);
       };
     })(this));
   },
-  ready: function() {
-    this.wrapDistributedNodes(this.$.cells, 'cell');
-    return this.wrapDistributedNodes(this.$.headers, 'header');
-  },
+  ready: function() {},
   valueChanged: function() {
-    this._value = this.value;
-    this._headers = [this.value[0]];
-    if (this._value !== this.value) {
-      return this.sort();
-    }
+    this._value = this.value.slice(0);
+    this._headers = [this._value[0]];
+    return this.sort();
   },
   keys: Object.keys
 });
