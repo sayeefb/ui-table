@@ -6,7 +6,8 @@ Reactive icon for the current sort direction on the ui-th
 
 
 #ui-th
-An element to handle 
+An element to handle sorting of a particular column and upating a its sort icon
+if present.
 
     Polymer 'ui-th',
 
