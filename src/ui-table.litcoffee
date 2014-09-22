@@ -35,7 +35,7 @@ Call this to sync your sort icon with the current state
 Syncs `direction`,`sortprop`,`col` and `active`, if they are unset or falsey
 no event is dispatched.
 
-_Dispatches:_ `ui-table-sort`, { direction, prop, col }
+_Dispatches:_ `'ui-table-sort', { direction, prop, col }`
 
       applySort: ->        
         return unless @direction?.length and @sortprop and @col and @active
