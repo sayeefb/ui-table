@@ -2601,8 +2601,9 @@ icon[youtube-square]:before,
   </template>
 </polymer-element>
 
-<polymer-element name="ui-td" attributes="col">
+<polymer-element name="ui-td" on-click="{{cellClicked}}">
   <template>
+    <content></content>
   </template>
 </polymer-element>
 
@@ -2621,7 +2622,7 @@ icon[youtube-square]:before,
       <thead>        
         <template repeat="{{row in _headers}}">
           <template repeat="{{key in row | keys}}">
-            <th>
+            <th>            
               <template ref="{{key}}-header" bind="{{row[key]}}">
               </template>
             </th>
@@ -2648,6 +2649,12 @@ icon[youtube-square]:before,
 
 <script built="/Users/rfairchild/code/ui-table/src/ui-table.litcoffee">(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 Polymer('ui-th-sort-icon', {});
+
+Polymer('ui-td', {
+  cellClicked: function() {
+    return this.fire('ui-td-click', this.model);
+  }
+});
 
 Polymer('ui-th', {
   directionChanged: function() {
@@ -2679,8 +2686,9 @@ Polymer('ui-th', {
   toggleDirection: function(event, detail, element) {
     this.direction = this.direction === 'asc' ? 'desc' : 'asc';
     if (this.sortable) {
-      return this.active = true;
+      this.active = true;
     }
+    return this.fire('ui-th-click');
   }
 });
 
@@ -2742,13 +2750,16 @@ Polymer('ui-table', {
         var col;
         col = t.getAttribute('name');
         t.setAttribute('id', "" + col + "-" + type);
+        t.childNodes.array().forEach(function(child) {
+          return child.setAttribute('col', "" + col);
+        });
+        Platform.flush();
         return _this.shadowRoot.appendChild(t);
       };
     })(this));
   },
   ready: function() {
-    this.addTemplates(this.$.cells, 'cell');
-    return this.addTemplates(this.$.headers, 'header');
+    return this.addTemplates(this.$.cells, 'cell');
   },
   keys: Object.keys,
   propParser: function(doc, prop) {

@@ -16,8 +16,9 @@
   </template>
 </polymer-element>
 
-<polymer-element name="ui-td" attributes="col">
+<polymer-element name="ui-td" on-click="{{cellClicked}}">
   <template>
+    <content></content>
   </template>
 </polymer-element>
 
@@ -32,9 +33,9 @@
     <table>      
       <thead>        
         <template repeat="{{row in _headers}}">
-          <template repeat="{{key in row | keys}}">
-            <th>
-              <template ref="{{key}}-header" bind="{{row[key]}}">
+          <template repeat="{{key, index in row | keys}}">
+            <th>            
+              <template ref="{{key}}-header" bind="{{ { column: key, rowIndex: index, data: row[key] } | merge }}">
               </template>
             </th>
           </template>
@@ -43,9 +44,9 @@
       <tbody>         
         <template repeat="{{row in _value}}">
           <tr>                    
-            <template repeat="{{key in row | keys}}">
+            <template repeat="{{key, index in row | keys}}">
               <td col="{{key}}">
-                <template ref="{{key}}-cell" bind="{{row[key]}}">
+                <template ref="{{key}}-cell" bind="{{ { column: key, rowIndex: index, data: row[key] } | merge }}">
                 </template>
               </td>
             </template>

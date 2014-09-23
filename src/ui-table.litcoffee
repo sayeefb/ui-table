@@ -4,6 +4,14 @@ Reactive icon for the current sort direction on the ui-th
     Polymer 'ui-th-sort-icon', {}
 
 
+#ui-td
+Light wrapper for cell element
+    
+    Polymer 'ui-td', 
+
+      cellClicked: ->                
+        @fire 'ui-td-click', @templateInstance.model
+
 
 #ui-th
 An element to handle sorting of a particular column and upating a its sort icon
@@ -52,7 +60,8 @@ then it will suppress `applySort()` from dispatching its event.
       toggleDirection: (event, detail, element) ->                      
         @direction = if @direction == 'asc' then 'desc' else 'asc'        
         @active = true if @sortable
-
+        
+        @fire 'ui-th-click', @templateInstance.model
 
 
 #ui-table 
@@ -73,7 +82,7 @@ Comparators for native sort function. These can be overidden though I do not rec
 ### sortChanged()
 The `sort` property can be changed externally on the node or defined on your templates elements.
 
-      sortChanged: -> @applySort()
+      sortChanged: -> @applySort()    
 
 ### valueChanged()
 When the value is changed it also builds out the headers off of the first row
@@ -131,7 +140,7 @@ cell/header data.
       addTemplates: (nodes, type) ->        
         nodes.getDistributedNodes().array().forEach (t) =>
           col = t.getAttribute 'name'
-          t.setAttribute 'id', "#{col}-#{type}"           
+          t.setAttribute 'id', "#{col}-#{type}"                  
           @shadowRoot.appendChild t
 
 ### ready()
@@ -141,12 +150,17 @@ Reads cell and header templates once component is ready for use.
         @addTemplates @$.cells, 'cell'
         @addTemplates @$.headers, 'header'      
 
-      
-
 ### keys(obj):Array
 Filter used to transform to allow objects to be iterated over with `TemplateBinding.repeat`
 
       keys: Object.keys
+
+      merge: (obj) ->
+        data = obj.data
+        data.metaData = 
+          rowIndex: obj.rowIndex
+          column: obj.column
+        data
 
 ### propParser(doc,prop):*
 Takes a document and dot property string (ex. `'prop1.prop2'`) and returns the value
