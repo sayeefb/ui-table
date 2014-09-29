@@ -45,7 +45,7 @@
           <tr>                    
             <template repeat="{{key in row | keys}}">
               <td col="{{key}}">
-                <template ref="{{key}}-cell" bind="{{row[key]}}">
+                <template ref="{{key}}-cell" bind="{{row}}">
                 </template>
               </td>
             </template>

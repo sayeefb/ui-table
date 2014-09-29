@@ -10,6 +10,13 @@
     <style>[hide] {
   display: none;
 }
+ui-th {
+  position: relative;
+}
+[sort-icon] {
+  position: absolute;
+  padding-left: 1em;
+}
 </style>  
     <style>@font-face {
   font-family: 'Anonymous Pro';
@@ -2612,6 +2619,13 @@ icon[youtube-square]:before,
     <style>[hide] {
   display: none;
 }
+ui-th {
+  position: relative;
+}
+[sort-icon] {
+  position: absolute;
+  padding-left: 1em;
+}
 </style>
         
     <content id="cells" select="template[column]"></content>
@@ -2633,7 +2647,7 @@ icon[youtube-square]:before,
           <tr>                    
             <template repeat="{{key in row | keys}}">
               <td col="{{key}}">
-                <template ref="{{key}}-cell" bind="{{row[key]}}">
+                <template ref="{{key}}-cell" bind="{{row}}">
                 </template>
               </td>
             </template>
@@ -2646,7 +2660,9 @@ icon[youtube-square]:before,
 </polymer-element>
 
 
-<script built="/Users/rfairchild/code/ui-table/src/ui-table.litcoffee">(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+<script built="/Users/sbazli/github/ui-table/src/ui-table.litcoffee">(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
 Polymer('ui-th-sort-icon', {});
 
 Polymer('ui-th', {
@@ -2687,19 +2703,67 @@ Polymer('ui-th', {
 Polymer('ui-table', {
   sortFunctions: {
     asc: function(a, b) {
-      return a >= b;
+      if (a === void 0 || a === '' || a === null) {
+        return 1;
+      } else if (b === void 0 || b === '' || b === null) {
+        return -1;
+      } else if (a <= b) {
+        return -1;
+      } else {
+        return 1;
+      }
     },
     desc: function(a, b) {
-      return a <= b;
+      if (a === void 0 || a === '' || a === null) {
+        return 1;
+      } else if (b === void 0 || b === '' || b === null) {
+        return -1;
+      } else if (a >= b) {
+        return -1;
+      } else {
+        return 1;
+      }
     }
   },
   sortChanged: function() {
     return this.applySort();
   },
   valueChanged: function() {
-    var _ref;
+    var headerTemplateIds, _ref;
     this._value = ((_ref = this.value) != null ? _ref.slice(0) : void 0) || [];
     this._headers = [this._value[0]];
+    this._value.forEach((function(_this) {
+      return function(item) {
+        return Object.keys(item).forEach(function(key) {
+          if (__indexOf.call(Object.keys(_this._headers[0]), key) < 0) {
+            return _this._headers[0][key] = '';
+          }
+        });
+      };
+    })(this));
+    headerTemplateIds = [];
+    this.shadowRoot.querySelectorAll("template[header]").array().forEach(function(item) {
+      return headerTemplateIds.push(item.getAttribute('id'));
+    });
+    Object.keys(this._headers[0]).forEach((function(_this) {
+      return function(item) {
+        var cellElem, headerElem, _ref1;
+        if (_ref1 = item + '-header', __indexOf.call(headerTemplateIds, _ref1) < 0) {
+          headerElem = document.createElement('template');
+          headerElem.setAttribute('header', '');
+          headerElem.setAttribute('name', item);
+          headerElem.setAttribute('id', "" + item + "-header");
+          headerElem.innerHTML = "<ui-th sortable='true' sortprop='" + item + "' col='" + item + "'><span>" + item + "</span><ui-th-sort-icon sort-icon></ui-th-sort-icon></ui-th>";
+          _this.shadowRoot.appendChild(headerElem);
+          cellElem = document.createElement('template');
+          cellElem.setAttribute('column', '');
+          cellElem.setAttribute('name', item);
+          cellElem.setAttribute('id', "" + item + "-cell");
+          cellElem.innerHTML = "{{" + item + "}}";
+          return _this.shadowRoot.appendChild(cellElem);
+        }
+      };
+    })(this));
     return this.applySort();
   },
   sortColumn: function(event, descriptor) {
@@ -2727,11 +2791,30 @@ Polymer('ui-table', {
     this.updateHeaderSortStates();
     return this._value.sort((function(_this) {
       return function(a, b) {
-        var compare, d, left, right;
+        var compare, d, left, leftVal, right, rightVal;
         d = _this.sort;
         compare = _this.sortFunctions[d.direction];
-        left = _this.propParser(a[d.col], d.prop);
-        right = _this.propParser(b[d.col], d.prop);
+        leftVal = a[d.col];
+        rightVal = b[d.col];
+        if (typeof a[d.col] === 'object') {
+          leftVal = _this.propParser(a, d.prop);
+          rightVal = _this.propParser(b, d.prop);
+        }
+        left = leftVal;
+        right = rightVal;
+        if (left === null || left === void 0) {
+          left = '';
+        }
+        if (typeof left !== 'number') {
+          left = left.toLowerCase().trim();
+        }
+        if (right === null || right === void 0) {
+          right = '';
+        }
+        if (typeof right !== 'number') {
+          right = right.toLowerCase().trim();
+        }
+        console.log(left, typeof left, right, typeof right, compare(left, right));
         return compare(left, right);
       };
     })(this));

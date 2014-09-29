@@ -6,7 +6,7 @@ Reactive icon for the current sort direction on the ui-th
 
 
 #ui-th
-An element to handle sorting of a particular column and upating a its sort icon
+An element to handle sorting of a particular column and upating its sort icon
 if present.
 
     Polymer 'ui-th',
@@ -65,8 +65,25 @@ out a table for you.  Also responds to sorting events that can be dispatched by 
 Comparators for native sort function. These can be overidden though I do not recommend it.
 
       sortFunctions:
-        asc: (a,b) -> a >= b
-        desc: (a,b) -> a <= b
+        asc: (a,b) -> 
+          if a is undefined or a is '' or a is null
+            return 1
+          else if b is undefined or b is '' or b is null
+            return -1
+          else if a <= b
+            return -1
+          else 
+            return 1
+
+        desc: (a,b) -> 
+          if a is undefined or a is '' or a is null
+            return 1
+          else if b is undefined or b is '' or b is null
+            return -1
+          else if a >= b
+            return -1
+          else 
+            return 1
 
 ### Change handlers
 
@@ -81,7 +98,31 @@ in the `value` property.  This is likely to change. Sorting is also applied if a
 
       valueChanged: ->
         @_value = @value?.slice(0) || [] #reference copy
-        @_headers = [@_value[0]]        
+        @_headers = [@_value[0]]
+        @_value.forEach (item) =>
+          Object.keys(item).forEach (key)=>
+            if key not in Object.keys(@_headers[0])
+              @_headers[0][key] = ''
+
+        headerTemplateIds = []
+        @shadowRoot.querySelectorAll("template[header]").array().forEach (item) ->
+          headerTemplateIds.push item.getAttribute 'id'  
+        Object.keys(@_headers[0]).forEach (item) =>
+          if item+'-header' not in headerTemplateIds
+            headerElem = document.createElement('template')
+            headerElem.setAttribute('header', '')
+            headerElem.setAttribute('name', item)
+            headerElem.setAttribute('id', "#{item}-header")
+            headerElem.innerHTML = "<ui-th sortable='true' sortprop='#{item}' col='#{item}'><span>#{item}</span><ui-th-sort-icon sort-icon></ui-th-sort-icon></ui-th>"
+            @shadowRoot.appendChild headerElem
+
+            cellElem = document.createElement('template')
+            cellElem.setAttribute('column', '')
+            cellElem.setAttribute('name', item)
+            cellElem.setAttribute('id', "#{item}-cell")
+            cellElem.innerHTML = "{{#{item}}}"
+            @shadowRoot.appendChild cellElem
+
         @applySort()  
 
 ### sortColumn()
@@ -118,8 +159,30 @@ and sorts the internal databound collection.
           d = @sort
           compare = @sortFunctions[d.direction]
           
-          left = @propParser a[d.col], d.prop
-          right = @propParser b[d.col], d.prop
+          leftVal = a[d.col]
+          rightVal = b[d.col]
+
+          if typeof a[d.col] is 'object'
+            leftVal = @propParser a, d.prop
+            rightVal = @propParser b, d.prop
+
+          left = leftVal
+          
+          right = rightVal
+
+          if left is null or left is undefined
+            left = ''
+
+          if typeof(left) isnt 'number'
+            left = left.toLowerCase().trim()
+
+          if right is null or right is undefined
+            right = ''
+
+          if typeof(right) isnt 'number'
+            right = right.toLowerCase().trim()
+
+          console.log left, typeof(left), right, typeof(right), compare(left, right)
 
           compare left, right
 
@@ -148,11 +211,12 @@ Filter used to transform to allow objects to be iterated over with `TemplateBind
 
       keys: Object.keys
 
+
 ### propParser(doc,prop):*
 Takes a document and dot property string (ex. `'prop1.prop2'`) and returns the value
 in the object for the nested property.
 
-      propParser: (doc, prop) ->        
+      propParser: (doc, prop) -> 
         prop.split('.').reduce (acc, p) -> 
           acc[p]
         , doc
