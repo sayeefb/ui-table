@@ -3,8 +3,6 @@ Reactive icon for the current sort direction on the ui-th
 
     Polymer 'ui-th-sort-icon', {}
 
-
-
 #ui-th
 An element to handle sorting of a particular column and upating its sort icon
 if present.
@@ -14,7 +12,7 @@ if present.
 ### Change handlers
 Handlers that attempt to sync and only dispatch one event by calling `applySort()`.
 
-      directionChanged: -> 
+      directionChanged: ->
         @applySort()
         @updateIcon()
 
@@ -84,6 +82,41 @@ Comparators for native sort function. These can be overidden though I do not rec
             return -1
           else 
             return 1
+
+### Cell Click Handler
+
+### bubbleClickEvent
+The cell that was clicked, will propegate 2 events for double click and 2 events for single click, 
+1 each for row data, and cell data
+
+      bubbleClickEvent: (e) ->
+        targetElement = e.target
+
+        if @clickTimer and @clickTimer isnt null
+          clearTimeout @clickTimer
+          @clickTimer = null
+          @fire 'ui-table-cell-double-click',
+            row: targetElement.getAttribute('row')
+            column: targetElement.getAttribute('col')
+            data: @_value[targetElement.getAttribute('row')][targetElement.getAttribute('col')]
+          @fire 'ui-table-row-double-click',
+            row: targetElement.getAttribute('row')
+            column: targetElement.getAttribute('col')
+            data: @_value[targetElement.getAttribute('row')]
+
+        else 
+          @clickTimer = setTimeout =>
+            @clickTimer = null
+            @fire 'ui-table-cell-click',
+              row: targetElement.getAttribute('row')
+              column: targetElement.getAttribute('col')
+              data: @_value[targetElement.getAttribute('row')][targetElement.getAttribute('col')]
+            @fire 'ui-table-row-click',
+              row: targetElement.getAttribute('row')
+              column: targetElement.getAttribute('col')
+              data: @_value[targetElement.getAttribute('row')]
+
+          , 300
 
 ### Change handlers
 
@@ -181,8 +214,6 @@ and sorts the internal databound collection.
 
           if typeof(right) isnt 'number'
             right = right.toLowerCase().trim()
-
-          console.log left, typeof(left), right, typeof(right), compare(left, right)
 
           compare left, right
 

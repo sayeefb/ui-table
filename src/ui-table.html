@@ -16,11 +16,6 @@
   </template>
 </polymer-element>
 
-<polymer-element name="ui-td" attributes="col">
-  <template>
-  </template>
-</polymer-element>
-
 <polymer-element name="ui-table" attributes="value sort" on-ui-table-sort="{{sortColumn}}">
   
   <template>
@@ -41,10 +36,10 @@
         </template>
       </thead>
       <tbody>         
-        <template repeat="{{row in _value}}">
+        <template repeat="{{row, r in _value}}">
           <tr>                    
             <template repeat="{{key in row | keys}}">
-              <td col="{{key}}">
+              <td col="{{key}}" row="{{r}}" on-click="{{bubbleClickEvent}}">
                 <template ref="{{key}}-cell" bind="{{row}}">
                 </template>
               </td>
