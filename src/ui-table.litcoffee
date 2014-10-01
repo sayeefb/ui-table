@@ -1,35 +1,39 @@
+#PolymerExpression extensions
+
+    PolymerExpressions.prototype.keys = (o) ->      
+      Object.keys(o)
+
 #ui-th-sort-icon
 Reactive icon for the current sort direction on the ui-th
 
-    Polymer 'ui-th-sort-icon', {}
+    Polymer 'grid-sort-icon', {}    
 
-
-#ui-td
+#grid-cell
 Light wrapper for cell element
     
-    Polymer 'ui-td', 
+    Polymer 'grid-cell', 
 
       cellClicked: ->                
-        @fire 'ui-td-click', @templateInstance.model
+        @fire 'grid-cell-click', @templateInstance.model
 
 
-#ui-th
+#grid-sort-header
 An element to handle sorting of a particular column and upating a its sort icon
 if present.
 
-    Polymer 'ui-th',
+    Polymer 'grid-sort-header',
 
 ### Change handlers
 Handlers that attempt to sync and only dispatch one event by calling `applySort()`.
 
-      directionChanged: -> 
-        @applySort()
-        @updateIcon()
+      directionChanged: ->      
+        @applySort()    
+        @updateIcon()    
 
       sortpropChanged: ->
         @applySort()
 
-      colChanged: ->
+      colChanged: ->              
         @applySort()
 
 ### updateIcon()
@@ -37,7 +41,7 @@ Call this to sync your sort icon with the current state
 
       updateIcon: ->
         sortIcon = @querySelector '[sort-icon]'
-        sortIcon.setAttribute 'direction', @direction
+        sortIcon.setAttribute 'direction', @direction        
 
 ### applySort()
 Syncs `direction`,`sortprop`,`col` and `active`, if they are unset or falsey
@@ -45,22 +49,21 @@ no event is dispatched.
 
 _Dispatches:_ `'ui-table-sort', { direction, prop, col }`
 
-      applySort: ->        
-        return unless @direction?.length and @sortprop and @col and @active
-
+      applySort: ->
+        return unless @direction?.length and @sortprop and @active
+        
         @fire 'ui-table-sort',
           direction: @direction
           prop: @sortprop
-          col: @col
+          col: @col    
 
 ### toggleDirection()
 Event handler for when the header is clicked.  If the header is not active
 then it will suppress `applySort()` from dispatching its event.
 
-      toggleDirection: (event, detail, element) ->                      
-        @direction = if @direction == 'asc' then 'desc' else 'asc'        
-        @active = true if @sortable
-        
+      toggleDirection: (event, detail, element) ->        
+        @direction = if @direction == 'asc' then 'desc' else 'asc'                
+        @active = true        
         @fire 'ui-th-click', @templateInstance.model
 
 
@@ -74,8 +77,15 @@ out a table for you.  Also responds to sorting events that can be dispatched by 
 Comparators for native sort function. These can be overidden though I do not recommend it.
 
       sortFunctions:
-        asc: (a,b) -> a >= b
-        desc: (a,b) -> a <= b
+        asc: (a,b) -> 
+          return 1 if a > b
+          return -1 if a < b
+          return 0
+
+        desc: (a,b) -> 
+          return 1 if a < b
+          return -1 if a > b
+          return 0
 
 ### Change handlers
 
@@ -88,15 +98,22 @@ The `sort` property can be changed externally on the node or defined on your tem
 When the value is changed it also builds out the headers off of the first row
 in the `value` property.  This is likely to change. Sorting is also applied if applicable 
 
-      valueChanged: ->
-        @_value = @value?.slice(0) || [] #reference copy
-        @_headers = [@_value[0]]        
+      valueChanged: ->                
+        @_value = @value.slice(0).map (v) => 
+          { row: v, rowheight: @rowheight }
+
+        @headers = Object.keys @_value.reduce (acc, wrapped) ->          
+          Object.keys(wrapped.row).forEach (k) -> acc[k] = true 
+          acc
+        , {}
+              
         @applySort()  
 
 ### sortColumn()
 Change handler for the `ui-table-sort` event that is dispatched by child elements
 
-      sortColumn: (event, descriptor) ->
+      sortColumn: (event, descriptor) -> 
+        console.log descriptor       
         @sort = descriptor      
 
 ### updateHeaderSortStates()
@@ -104,31 +121,27 @@ Internal function that find all of the child sortable headers and attempts to
 reset their `direction` if they are not active.  For now only single column sort is handled.
 
       updateHeaderSortStates: ->        
-        sortables = @shadowRoot?.querySelectorAll "th [sortable]"        
-                
-        sortables?.array().forEach (sortable) =>              
-          if sortable.getAttribute('col') != @sort.col
+        sortables = @shadowRoot?.querySelectorAll "grid-sort-header"                    
+        sortables?.array().forEach (sortable) =>    
+          console.log sortable.col, @sort.col                
+          if sortable.col != @sort.col
             sortable.setAttribute 'active', false
-            sortable.setAttribute 'direction', ''
-          else
-            sortable.setAttribute 'active', true
-            sortable.setAttribute 'direction', @sort.direction            
+            sortable.direction = ''                     
 
 ### applySort()
 Internal function that syncs `@_value` and `@sort`.  It updates the header states
 and sorts the internal databound collection.
 
-      applySort: ->        
+      applySort: ->       
         return unless @_value and @sort
 
         @updateHeaderSortStates()
-        
+
         @_value.sort (a,b) =>        
           d = @sort
-          compare = @sortFunctions[d.direction]
-          
-          left = @propParser a[d.col], d.prop
-          right = @propParser b[d.col], d.prop
+          compare = @sortFunctions[d.direction]                  
+          left = @propParser a.row, d.prop
+          right = @propParser b.row, d.prop
 
           compare left, right
 
@@ -143,25 +156,32 @@ cell/header data.
           t.setAttribute 'id', "#{col}-#{type}"                  
           @shadowRoot.appendChild t
 
+      wrapContentSelect: (nodes,name) ->
+        first = nodes.getDistributedNodes().array()[0]
+        if first
+          first.setAttribute 'id', name                  
+          @shadowRoot.appendChild first
+
 ### ready()
 Reads cell and header templates once component is ready for use.
 
-      ready: ->        
-        @addTemplates @$.cells, 'cell'
-        @addTemplates @$.headers, 'header'      
+      ready: ->      
+        # @wrapContentSelect @$.header, 'header-template'
+        # @wrapContentSelect @$.row, 'row-template'
+        
+        # @addTemplates @$.rows, 'cells'
+        # @addTemplates @$.headers, 'header'      
 
 ### keys(obj):Array
 Filter used to transform to allow objects to be iterated over with `TemplateBinding.repeat`
-
-      keys: Object.keys
-
+  
       merge: (obj) ->
         data = obj.data
         data.metaData = 
           rowIndex: obj.rowIndex
           column: obj.column
         data
-
+  
 ### propParser(doc,prop):*
 Takes a document and dot property string (ex. `'prop1.prop2'`) and returns the value
 in the object for the nested property.

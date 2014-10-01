@@ -3,13 +3,11 @@
   "version": "0.0.0",
   "dependencies": {
     "polymer-build": "",
-    "polymer": "git://github.com/custom-elements/polymer#master",
-    "ui-view": "git://github.com/custom-elements/ui-view#master",
-    "ui-styles": "git://github.com/custom-elements/ui-styles#master",
-    "ui-fonts": "git://github.com/custom-elements/ui-fonts#master"
+    "polymer": "git://github.com/custom-elements/polymer#master"  
   },
   "license": "ISC",
   "scripts": {
-    "test": "polymer-build watch . src/ build/"
-  }
+    "test": "polymer-build watch . src/ build/",
+    "install": "napa"
+  }  
 }

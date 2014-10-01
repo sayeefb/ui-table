@@ -1,0 +1,20 @@
+{
+  "name": "ui-table",
+  "version": "0.0.0",
+  "homepage": "https://github.com/sayeefb/ui-table",
+  "authors": [
+    "Ryan Fairchild <rfairchild@glgroup.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "core-splitter": "Polymer/core-splitter#~0.4.1",
+    "polymer-fontawesome": "rtbenfield/polymer-fontawesome#master"
+  }
+}

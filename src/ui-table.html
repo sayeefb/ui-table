@@ -1,62 +1,76 @@
-<polymer-element name="ui-th" attributes="col direction sortable sortactive sortprop active" on-click="{{toggleDirection}}">
+<link rel="import" href="../bower_components/core-list/core-list.html">
+
+<polymer-element name="grid-cell" on-click="{{cellClicked}}">
+  
+  <template>
+    <content></content>
+  </template>
+  
+</polymer-element>
+
+<polymer-element name="grid-sort-header" attributes="col direction sortprop active" 
+  on-click="{{ toggleDirection }}">
+
   <template>
     <content></content>  
     <content select="[sort-icon]"></content>  
   </template>
+
 </polymer-element>
 
-<polymer-element name="ui-th-sort-icon" attributes="direction">
-  <template>    
-    <link rel="stylesheet" type="text/css" href="./ui-table.less">  
-    <link rel="import" href="../node_modules/ui-fonts/fonts.html">
-
-    <icon sort-asc hide?="{{direction != 'asc'}}"></icon>
-    <icon sort-desc hide?="{{direction != 'desc'}}"></icon>
-    <icon sort hide?="{{direction}}"></icon>
-  </template>
-</polymer-element>
-
-<polymer-element name="ui-td" on-click="{{cellClicked}}">
-  <template>
-    <content></content>
-  </template>
-</polymer-element>
-
-<polymer-element name="ui-table" attributes="value sort" on-ui-table-sort="{{sortColumn}}">
+<polymer-element name="grid-sort-icon" attributes="direction">  
   
-  <template>
-    <link rel="stylesheet" type="text/css" href="./ui-table.less">
-        
-    <content id="cells" select="template[column]"></content>
-    <content id="headers" select="template[header]"></content>
-    
-    <table>      
-      <thead>        
-        <template repeat="{{row in _headers}}">
-          <template repeat="{{key, index in row | keys}}">
-            <th>            
-              <template ref="{{key}}-header" bind="{{ { column: key, rowIndex: index, data: row[key] } | merge }}">
-              </template>
-            </th>
-          </template>
-        </template>
-      </thead>
-      <tbody>         
-        <template repeat="{{row in _value}}">
-          <tr>                    
-            <template repeat="{{key, index in row | keys}}">
-              <td col="{{key}}">
-                <template ref="{{key}}-cell" bind="{{ { column: key, rowIndex: index, data: row[key] } | merge }}">
-                </template>
-              </td>
-            </template>
-          </tr>
-        </template>
-      </tbody>
-    </table>    
+  <template>    
+    <link rel="stylesheet" type="text/css" href="./ui-table.less">    
+    <icon sort-asc hide?="{{ direction != 'asc' }}"></icon>
+    <icon sort-desc hide?="{{ direction != 'desc' }}"></icon>
+    <icon sort hide?="{{ direction }}"></icon>
   </template>
 
 </polymer-element>
 
+<polymer-element name="ui-table" attributes="value sort url rowheight" on-ui-table-sort="{{sortColumn}}">
+    
+  <template>    
+    <link rel="stylesheet" type="text/css" href="./ui-table.less">
+
+    <!-- need to pull back in ability to pull in custom templates -->
+
+    <content id="row" select="template[row]"></content>
+    <content id="header" select="template[header]"></content>
+      
+    <template id="row-template">    
+      <template repeat="{{ key in row | keys }}">
+        <grid-cell flex col="{{key}}">
+          {{ row[key] }}
+        </grid-cell>
+      </template>
+    </template>
+        
+    <grid>                
+      <grid-header horizontal layout>
+        <template repeat="{{ header in headers }}">
+          <grid-cell flex>
+            <grid-sort-header sortprop="{{header}}" active="true" col="{{header}}">
+              {{ header }} 
+              <grid-sort-icon sort-icon></grid-sort-icon>          
+            </grid-sort-header>          
+          </grid-cell>
+        </template>        
+      </grid-header>      
+      <grid-body>            
+        <core-list data="{{ _value }}" height="{{ rowheight }}">
+          <template>
+            <grid-row horizontal layout style="height: {{ rowheight }}px;">
+              <template ref="row-template" bind="{{}}"></template>
+            </grid-row>
+          </template>
+        </core-list>      
+      </grid-body>
+    </grid>
+
+  </template>
+
+</polymer-element>
 
 <script src="./ui-table.litcoffee"></script>
