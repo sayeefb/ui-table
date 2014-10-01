@@ -1,9 +1,14 @@
 #PolymerExpression extensions
 
-    PolymerExpressions.prototype.keys = (o) ->      
+    PolymerExpressions.prototype.keys = (o) ->
       Object.keys(o)
 
-#ui-th-sort-icon
+    PolymerExpressions.prototype.remove = (arr, remove) ->      
+      return arr unless arr?.length and remove?.length
+      arr.filter (a) -> !!remove.indexOf a 
+
+    
+#grid-sort-icon
 Reactive icon for the current sort direction on the ui-th
 
     Polymer 'grid-sort-icon', {}    
@@ -77,12 +82,12 @@ out a table for you.  Also responds to sorting events that can be dispatched by 
 Comparators for native sort function. These can be overidden though I do not recommend it.
 
       sortFunctions:
-        asc: (a,b) -> 
+        asc: (a,b) ->           
           return 1 if a > b
           return -1 if a < b
           return 0
 
-        desc: (a,b) -> 
+        desc: (a,b) ->           
           return 1 if a < b
           return -1 if a > b
           return 0
@@ -97,30 +102,48 @@ The `sort` property can be changed externally on the node or defined on your tem
 ### valueChanged()
 When the value is changed it also builds out the headers off of the first row
 in the `value` property.  This is likely to change. Sorting is also applied if applicable 
+      
+      ignoredcolsChanged: ->        
+        @_ignoredcols = @ignoredcols
+        @_ignoredcols = @ignoredcols.split(',') if @ignoredcols.constructor == String        
+        @rebuildValue()
 
-      valueChanged: ->                
-        @_value = @value.slice(0).map (v) => 
-          { row: v, rowheight: @rowheight }
+      rowheightChanged: -> 
+        @rebuildValue()
 
+      valueChanged: ->             
+        @rebuildValue()
+        @rebuildHeader()
+        @applySort()
+
+      updateValue: (event) ->        
+        res = event.detail.response
+        if @transformResponse
+          return @value = @transformResponse res
+        @value = res
+
+      rebuildValue: ->        
+        @_value = (@value || []).slice(0).map (v,k) =>
+          { row: v, rowheight: @rowheight, ignoredcols: @_ignoredcols }
+        console.log @_value
+
+      rebuildHeader: ->
         @headers = Object.keys @_value.reduce (acc, wrapped) ->          
           Object.keys(wrapped.row).forEach (k) -> acc[k] = true 
           acc
         , {}
-              
-        @applySort()  
 
 ### sortColumn()
 Change handler for the `ui-table-sort` event that is dispatched by child elements
 
-      sortColumn: (event, descriptor) -> 
-        console.log descriptor       
+      sortColumn: (event, descriptor) ->             
         @sort = descriptor      
 
-### updateHeaderSortStates()
+### updateHeaders()
 Internal function that find all of the child sortable headers and attempts to 
 reset their `direction` if they are not active.  For now only single column sort is handled.
 
-      updateHeaderSortStates: ->        
+      updateHeaders: ->        
         sortables = @shadowRoot?.querySelectorAll "grid-sort-header"                    
         sortables?.array().forEach (sortable) =>    
           console.log sortable.col, @sort.col                
@@ -135,7 +158,7 @@ and sorts the internal databound collection.
       applySort: ->       
         return unless @_value and @sort
 
-        @updateHeaderSortStates()
+        @updateHeaders()
 
         @_value.sort (a,b) =>        
           d = @sort
@@ -180,7 +203,7 @@ Filter used to transform to allow objects to be iterated over with `TemplateBind
         data.metaData = 
           rowIndex: obj.rowIndex
           column: obj.column
-        data
+        data                
   
 ### propParser(doc,prop):*
 Takes a document and dot property string (ex. `'prop1.prop2'`) and returns the value

@@ -26,7 +26,7 @@ grid {
 
   grid-body {
     display: block; 
-    height: ~"calc(100% - 38px)";
+    height: ~"calc(100% -" @grid-header-height ~")";
   }
   
   grid-row {
@@ -41,6 +41,7 @@ grid {
     border-bottom:1px inset #ddd;
     text-overflow: ellipsis;
     overflow: hidden;
+    white-space: nowrap;
   }  
 
   grid-sort-header {

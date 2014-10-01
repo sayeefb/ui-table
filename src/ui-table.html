@@ -1,4 +1,5 @@
 <link rel="import" href="../bower_components/core-list/core-list.html">
+<link rel="import" href="../bower_components/core-ajax/core-ajax.html">
 
 <polymer-element name="grid-cell" on-click="{{cellClicked}}">
   
@@ -29,7 +30,7 @@
 
 </polymer-element>
 
-<polymer-element name="ui-table" attributes="value sort url rowheight" on-ui-table-sort="{{sortColumn}}">
+<polymer-element name="ui-table" attributes="value sort url rowheight src ignoredcols" on-ui-table-sort="{{sortColumn}}">
     
   <template>    
     <link rel="stylesheet" type="text/css" href="./ui-table.less">
@@ -39,8 +40,8 @@
     <content id="row" select="template[row]"></content>
     <content id="header" select="template[header]"></content>
       
-    <template id="row-template">    
-      <template repeat="{{ key in row | keys }}">
+    <template id="row-template">
+      <template repeat="{{ key in row | keys | remove(ignoredcols) }}">
         <grid-cell flex col="{{key}}">
           {{ row[key] }}
         </grid-cell>
@@ -49,7 +50,7 @@
         
     <grid>                
       <grid-header horizontal layout>
-        <template repeat="{{ header in headers }}">
+        <template repeat="{{ header in headers | remove(_ignoredcols) }}">
           <grid-cell flex>
             <grid-sort-header sortprop="{{header}}" active="true" col="{{header}}">
               {{ header }} 
@@ -60,7 +61,7 @@
       </grid-header>      
       <grid-body>            
         <core-list data="{{ _value }}" height="{{ rowheight }}">
-          <template>
+          <template>            
             <grid-row horizontal layout style="height: {{ rowheight }}px;">
               <template ref="row-template" bind="{{}}"></template>
             </grid-row>
@@ -68,6 +69,12 @@
         </core-list>      
       </grid-body>
     </grid>
+
+    <core-ajax
+      auto
+      url="{{src}}"          
+      handleAs="json"
+      on-core-response="{{updateValue}}"></core-ajax>
 
   </template>
 
